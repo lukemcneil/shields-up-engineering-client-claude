@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shields Up Engineering</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="lobby">
+    <h1>Shields Up Engineering</h1>
+    <label for="game-name">Game Name</label>
+    <input type="text" id="game-name" value="game1">
+    <div class="player-select">
+      <label><input type="radio" name="player" value="Player1" checked> Player 1</label>
+      <label><input type="radio" name="player" value="Player2"> Player 2</label>
+    </div>
+    <button id="connect-btn">Connect</button>
+    <div id="lobby-status"></div>
+  </div>
+
+  <div id="game-board" class="hidden">
+    <!-- Opponent Area -->
+    <div id="opponent-area">
+      <div class="player-stats" id="opponent-stats">
+        <span class="stat hull">Hull: 0/5</span>
+        <span class="stat shields">Shields: 0</span>
+        <span class="stat short-circuits">Short Circuits: 0</span>
+      </div>
+      <div class="systems-row" id="opponent-systems">
+        <div class="system-panel fusion-reactor" data-system="FusionReactor">
+          <div class="system-name">Fusion Reactor</div>
+          <img class="system-img" src="cards/aa_Fusion_Reactor[face,2].png" alt="Fusion Reactor">
+          <div class="system-energy">Energy: 0</div>
+          <div class="system-overloads">Overloads: 0</div>
+          <div class="system-hotwires">Hot-Wires: 0</div>
+        </div>
+        <div class="system-panel life-support" data-system="LifeSupport">
+          <div class="system-name">Life Support</div>
+          <img class="system-img" src="cards/aa_Life_Support[face,2].png" alt="Life Support">
+          <div class="system-energy">Energy: 0</div>
+          <div class="system-overloads">Overloads: 0</div>
+          <div class="system-hotwires">Hot-Wires: 0</div>
+        </div>
+        <div class="system-panel shield-generator" data-system="ShieldGenerator">
+          <div class="system-name">Shield Generator</div>
+          <img class="system-img" src="cards/aa_Shield_Generator[face,2].png" alt="Shield Generator">
+          <div class="system-energy">Energy: 0</div>
+          <div class="system-overloads">Overloads: 0</div>
+          <div class="system-hotwires">Hot-Wires: 0</div>
+        </div>
+        <div class="system-panel weapons-system" data-system="Weapons">
+          <div class="system-name">Weapons System</div>
+          <img class="system-img" src="cards/aa_Weapons_System[face,2].png" alt="Weapons System">
+          <div class="system-energy">Energy: 0</div>
+          <div class="system-overloads">Overloads: 0</div>
+          <div class="system-hotwires">Hot-Wires: 0</div>
+        </div>
+      </div>
+      <div class="hand-row" id="opponent-hand"></div>
+    </div>
+
+    <!-- Game Info Bar -->
+    <div id="game-info-bar">
+      <span class="turn-indicator">Player 1's Turn</span>
+      <span class="actions-display">Actions: 3/3</span>
+      <span class="turn-state">Choosing Action</span>
+      <span class="deck-info">Deck: 0 | Discard: 0</span>
+    </div>
+
+    <!-- Player Area -->
+    <div id="player-area">
+      <div class="hand-row" id="player-hand"></div>
+      <div class="systems-row" id="player-systems">
+        <div class="system-panel fusion-reactor" data-system="FusionReactor">
+          <div class="system-name">Fusion Reactor</div>
+          <img class="system-img" src="cards/aa_Fusion_Reactor[face,2].png" alt="Fusion Reactor">
+          <div class="system-energy">Energy: 0</div>
+          <div class="system-overloads">Overloads: 0</div>
+          <div class="system-hotwires">Hot-Wires: 0</div>
+        </div>
+        <div class="system-panel life-support" data-system="LifeSupport">
+          <div class="system-name">Life Support</div>
+          <img class="system-img" src="cards/aa_Life_Support[face,2].png" alt="Life Support">
+          <div class="system-energy">Energy: 0</div>
+          <div class="system-overloads">Overloads: 0</div>
+          <div class="system-hotwires">Hot-Wires: 0</div>
+        </div>
+        <div class="system-panel shield-generator" data-system="ShieldGenerator">
+          <div class="system-name">Shield Generator</div>
+          <img class="system-img" src="cards/aa_Shield_Generator[face,2].png" alt="Shield Generator">
+          <div class="system-energy">Energy: 0</div>
+          <div class="system-overloads">Overloads: 0</div>
+          <div class="system-hotwires">Hot-Wires: 0</div>
+        </div>
+        <div class="system-panel weapons-system" data-system="Weapons">
+          <div class="system-name">Weapons System</div>
+          <img class="system-img" src="cards/aa_Weapons_System[face,2].png" alt="Weapons System">
+          <div class="system-energy">Energy: 0</div>
+          <div class="system-overloads">Overloads: 0</div>
+          <div class="system-hotwires">Hot-Wires: 0</div>
+        </div>
+      </div>
+      <div class="player-stats" id="player-stats">
+        <span class="stat hull">Hull: 0/5</span>
+        <span class="stat shields">Shields: 0</span>
+        <span class="stat short-circuits">Short Circuits: 0</span>
+      </div>
+      <div class="action-buttons" id="action-buttons">
+        <button id="pass-btn">Pass Turn</button>
+        <button id="reduce-sc-btn">Reduce Short Circuits</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

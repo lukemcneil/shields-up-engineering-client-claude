@@ -1,0 +1,253 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a1628;
+  color: #e0e0e0;
+  font-family: 'Courier New', Courier, monospace;
+  min-height: 100vh;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Lobby */
+#lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+}
+
+#lobby h1 {
+  color: #e8622a;
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
+
+#lobby label {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+#lobby input[type="text"] {
+  background: #162040;
+  border: 1px solid #334;
+  color: #e0e0e0;
+  padding: 8px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  border-radius: 4px;
+  width: 200px;
+  text-align: center;
+}
+
+#lobby input[type="text"]:focus {
+  outline: none;
+  border-color: #e8622a;
+}
+
+.player-select {
+  display: flex;
+  gap: 16px;
+  margin: 8px 0;
+}
+
+.player-select label {
+  cursor: pointer;
+  color: #e0e0e0;
+}
+
+#connect-btn {
+  background: #e8622a;
+  color: #fff;
+  border: none;
+  padding: 10px 32px;
+  font-size: 1rem;
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+#connect-btn:hover {
+  background: #ff7a3a;
+}
+
+#lobby-status {
+  color: #f44;
+  font-size: 0.85rem;
+  min-height: 1.2em;
+}
+
+/* Game Board */
+#game-board {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Opponent Area */
+#opponent-area {
+  flex: 0 0 30%;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px;
+  gap: 6px;
+}
+
+/* Game Info Bar */
+#game-info-bar {
+  flex: 0 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: #162040;
+  border-top: 1px solid #334;
+  border-bottom: 1px solid #334;
+  padding: 0 16px;
+  font-size: 0.85rem;
+}
+
+.turn-indicator {
+  color: #e8622a;
+  font-weight: bold;
+}
+
+.turn-state {
+  color: #6ec;
+}
+
+.deck-info {
+  color: #888;
+}
+
+/* Player Area */
+#player-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px;
+  gap: 6px;
+}
+
+/* Player Stats */
+.player-stats {
+  display: flex;
+  gap: 24px;
+  padding: 4px 0;
+  font-size: 0.85rem;
+}
+
+.stat.hull {
+  color: #f66;
+}
+
+.stat.shields {
+  color: #6af;
+}
+
+.stat.short-circuits {
+  color: #fd4;
+}
+
+/* Systems Row */
+.systems-row {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.system-panel {
+  flex: 1;
+  background: #111e36;
+  border-radius: 6px;
+  border-left: 3px solid #555;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.75rem;
+  overflow: hidden;
+}
+
+.system-panel.fusion-reactor {
+  border-left-color: #fd4;
+}
+
+.system-panel.life-support {
+  border-left-color: #4dd;
+}
+
+.system-panel.shield-generator {
+  border-left-color: #48f;
+}
+
+.system-panel.weapons-system {
+  border-left-color: #e8622a;
+}
+
+.system-name {
+  font-weight: bold;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
+
+.system-img {
+  width: 100%;
+  max-height: 80px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.system-energy {
+  color: #fd4;
+}
+
+.system-overloads {
+  color: #f44;
+}
+
+.system-hotwires {
+  color: #aaa;
+}
+
+/* Hand Row */
+.hand-row {
+  display: flex;
+  gap: -20px;
+  padding: 4px 0;
+  min-height: 40px;
+  align-items: center;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.action-buttons button {
+  background: #1a2a4a;
+  color: #e0e0e0;
+  border: 1px solid #334;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-buttons button:hover {
+  background: #243a5a;
+  border-color: #e8622a;
+}
