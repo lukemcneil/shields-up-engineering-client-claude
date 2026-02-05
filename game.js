@@ -82,9 +82,71 @@ const SYSTEM_NAMES = {
   Weapons: 'Weapons System',
 };
 
+// --- Send action to server ---
+function sendAction(userAction) {
+  const msg = { player: myPlayer, user_action: userAction };
+  ws.send(JSON.stringify(msg));
+}
+
 // --- Error display ---
+let errorTimeout = null;
 function showError(msg) {
   console.error('Server error:', msg);
+  let toast = document.getElementById('error-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'error-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(errorTimeout);
+  errorTimeout = setTimeout(() => toast.classList.remove('visible'), 3000);
+}
+
+// --- Card popup ---
+let activePopup = null;
+function closePopup() {
+  if (activePopup) {
+    activePopup.remove();
+    activePopup = null;
+  }
+}
+
+function showCardPopup(cardEl, cardIndex) {
+  closePopup();
+  const popup = document.createElement('div');
+  popup.className = 'card-popup';
+
+  const playBtn = document.createElement('button');
+  playBtn.textContent = 'Play Instant';
+  playBtn.addEventListener('click', () => {
+    sendAction({ ChooseAction: { action: { PlayInstantCard: { card_index: cardIndex } } } });
+    closePopup();
+  });
+
+  const hotWireBtn = document.createElement('button');
+  hotWireBtn.textContent = 'Hot-Wire';
+  hotWireBtn.addEventListener('click', () => {
+    closePopup();
+    startHotWireFlow(cardIndex);
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.className = 'cancel-btn';
+  cancelBtn.addEventListener('click', closePopup);
+
+  popup.appendChild(playBtn);
+  popup.appendChild(hotWireBtn);
+  popup.appendChild(cancelBtn);
+  cardEl.appendChild(popup);
+  activePopup = popup;
+}
+
+// --- Hot-Wire flow (placeholder, implemented in Task 7) ---
+function startHotWireFlow(cardIndex) {
+  console.log('Hot-Wire flow for card', cardIndex, '— not yet implemented');
 }
 
 // --- Helper: get player/opponent state ---
@@ -117,6 +179,7 @@ function render() {
   renderHand(myState.hand, 'player-hand', true);
 
   renderGameInfoBar();
+  renderActionButtons();
 }
 
 function renderPlayerStats(playerState, elementId) {
@@ -194,6 +257,55 @@ function renderHand(cards, containerId, isMyHand) {
     img.draggable = false;
 
     cardEl.appendChild(img);
+
+    if (isMyHand) {
+      cardEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!isMyTurn()) return;
+        if (gameState.turn_state !== 'ChoosingAction') return;
+        showCardPopup(cardEl, index);
+      });
+    }
+
     container.appendChild(cardEl);
   });
 }
+
+// --- Action buttons ---
+function renderActionButtons() {
+  const buttons = document.getElementById('action-buttons');
+  const passBtn = document.getElementById('pass-btn');
+  const reduceSCBtn = document.getElementById('reduce-sc-btn');
+
+  const canAct = isMyTurn() && gameState.turn_state === 'ChoosingAction';
+  passBtn.disabled = !canAct;
+  reduceSCBtn.disabled = !canAct;
+  buttons.style.opacity = canAct ? '1' : '0.4';
+}
+
+// Wire up action buttons (once)
+document.getElementById('pass-btn').addEventListener('click', () => {
+  if (!isMyTurn() || gameState.turn_state !== 'ChoosingAction') return;
+  const myHand = getMyState().hand;
+  if (myHand.length > 5) {
+    startDiscardSelection(myHand.length - 5);
+  } else {
+    sendAction({ Pass: { card_indices_to_discard: [] } });
+  }
+});
+
+document.getElementById('reduce-sc-btn').addEventListener('click', () => {
+  if (!isMyTurn() || gameState.turn_state !== 'ChoosingAction') return;
+  sendAction({ ChooseAction: { action: 'ReduceShortCircuits' } });
+});
+
+// --- Discard selection for pass turn (placeholder, refined in Task 10) ---
+let discardMode = null;
+function startDiscardSelection(count) {
+  console.log('Need to discard', count, 'cards — not yet implemented');
+  // For now just pass with empty discards
+  sendAction({ Pass: { card_indices_to_discard: [] } });
+}
+
+// Close popup on click outside
+document.addEventListener('click', () => closePopup());

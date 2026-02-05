@@ -46,7 +46,7 @@ Fix any visual or functional issues found via Playwright before marking a task c
 - [x] Task 2: Game board layout — static structure
 - [x] Task 3: Render game state — player stats and systems
 - [x] Task 4: Render hands with card images
-- [ ] Task 5: Choosing Action — Play Instant and basic actions
+- [x] Task 5: Choosing Action — Play Instant and basic actions
 - [ ] Task 6: Choosing Action — Activate System
 - [ ] Task 7: Choosing Action — Hot-Wire cards
 - [ ] Task 8: Resolving Effects — simple effects
@@ -277,7 +277,7 @@ git commit -m "feat: render card hands with card face images"
 - Modify: `shields-up-engineering-client/game.js`
 - Modify: `shields-up-engineering-client/style.css`
 
-- [ ] **Step 1: Add action helper — sendAction()**
+- [x] **Step 1: Add action helper — sendAction()**
 
 ```js
 function sendAction(userAction) {
@@ -286,40 +286,40 @@ function sendAction(userAction) {
 }
 ```
 
-- [ ] **Step 2: Implement card click → Play Instant**
+- [x] **Step 2: Implement card click → Play Instant**
 
 When a card in hand is clicked during ChoosingAction:
 - Show a small popup/tooltip on the card with two buttons: "Play Instant" and "Hot-Wire"
 - "Play Instant" sends: `{ "ChooseAction": { "action": { "PlayInstantCard": { "card_index": N } } } }`
 - Close the popup after sending
 
-- [ ] **Step 3: Implement Pass Turn button**
+- [x] **Step 3: Implement Pass Turn button**
 
 - "Pass Turn" button in player area
 - On click: if hand.length > 5, show a card selection UI to pick cards to discard down to 5
 - Otherwise send: `{ "Pass": { "card_indices_to_discard": [] } }`
 
-- [ ] **Step 4: Implement Reduce Short Circuits button**
+- [x] **Step 4: Implement Reduce Short Circuits button**
 
 - Button in player area
 - Sends: `{ "ChooseAction": { "action": "ReduceShortCircuits" } }`
 
-- [ ] **Step 5: Only show controls when it's your turn and state is ChoosingAction**
+- [x] **Step 5: Only show controls when it's your turn and state is ChoosingAction**
 
 - Check `gameState.players_turn === myPlayer`
 - Check `gameState.turn_state === "ChoosingAction"`
 - Hide/disable action buttons otherwise
 
-- [ ] **Step 6: Implement error display**
+- [x] **Step 6: Implement error display**
 
 - When server responds with `{"Err": "..."}`, show a brief toast/message with the error
 - Auto-dismiss after 3 seconds
 
-- [ ] **Step 7: Verify**
+- [x] **Step 7: Verify**
 
 Connect two tabs as P1 and P2. P1 plays an instant card — both tabs update. P1 passes — P2's tab becomes active. Errors show as toasts.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add shields-up-engineering-client/

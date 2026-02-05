@@ -235,6 +235,7 @@ body {
   margin-right: -30px;
   transition: transform 0.15s ease;
   cursor: default;
+  position: relative;
 }
 
 .card:last-child {
@@ -275,7 +276,70 @@ body {
   cursor: pointer;
 }
 
-.action-buttons button:hover {
+.action-buttons button:hover:not(:disabled) {
   background: #243a5a;
   border-color: #e8622a;
+}
+
+.action-buttons button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* Card Popup */
+.card-popup {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a2a4a;
+  border: 1px solid #e8622a;
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 100;
+  white-space: nowrap;
+}
+
+.card-popup button {
+  background: #243a5a;
+  color: #e0e0e0;
+  border: 1px solid #334;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-family: inherit;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.card-popup button:hover {
+  background: #e8622a;
+  color: #fff;
+}
+
+.card-popup .cancel-btn:hover {
+  background: #444;
+}
+
+/* Error Toast */
+#error-toast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: #c0392b;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+#error-toast.visible {
+  opacity: 1;
 }
