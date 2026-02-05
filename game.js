@@ -162,9 +162,126 @@ function showCardPopup(cardEl, cardIndex) {
   activePopup = popup;
 }
 
-// --- Hot-Wire flow (placeholder, implemented in Task 7) ---
+// --- Hot-Wire flow ---
 function startHotWireFlow(cardIndex) {
-  console.log('Hot-Wire flow for card', cardIndex, '— not yet implemented');
+  const card = getMyState().hand[cardIndex];
+  showSystemPickerModal('Hot-Wire to which system?', (system) => {
+    const discardsNeeded = card.hot_wire_cost.cards_to_discard;
+    if (discardsNeeded > 0) {
+      startCardSelectionMode(discardsNeeded, cardIndex, (selectedIndices) => {
+        sendAction({ ChooseAction: { action: { HotWireCard: { card_index: cardIndex, system: system, indices_to_discard: selectedIndices } } } });
+      });
+    } else {
+      sendAction({ ChooseAction: { action: { HotWireCard: { card_index: cardIndex, system: system, indices_to_discard: [] } } } });
+    }
+  });
+}
+
+// --- System picker modal (reusable) ---
+function showSystemPickerModal(title, onPick) {
+  closeModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'energy-modal';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+
+  const heading = document.createElement('h3');
+  heading.textContent = title;
+  modal.appendChild(heading);
+
+  const btnRow = document.createElement('div');
+  btnRow.className = 'system-picker-row';
+
+  SYSTEM_ENUMS.forEach(sysEnum => {
+    const btn = document.createElement('button');
+    btn.textContent = SYSTEM_NAMES[sysEnum];
+    btn.className = 'system-pick-btn';
+    btn.addEventListener('click', () => {
+      closeModal();
+      onPick(sysEnum);
+    });
+    btnRow.appendChild(btn);
+  });
+
+  modal.appendChild(btnRow);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.className = 'cancel-btn';
+  cancelBtn.style.marginTop = '12px';
+  cancelBtn.addEventListener('click', closeModal);
+  modal.appendChild(cancelBtn);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+// --- Card selection mode (for discards) ---
+let cardSelectionState = null;
+
+function startCardSelectionMode(count, excludeIndex, onConfirm) {
+  cardSelectionState = { count, excludeIndex, selected: [], onConfirm };
+  renderCardSelection();
+}
+
+function renderCardSelection() {
+  if (!cardSelectionState) return;
+  const { count, excludeIndex, selected } = cardSelectionState;
+  const container = document.getElementById('player-hand');
+  const cards = container.querySelectorAll('.card');
+
+  // Show selection prompt
+  let prompt = document.getElementById('card-select-prompt');
+  if (!prompt) {
+    prompt = document.createElement('div');
+    prompt.id = 'card-select-prompt';
+    container.parentNode.insertBefore(prompt, container);
+  }
+  prompt.textContent = `Select ${count} card(s) to discard (${selected.length}/${count})`;
+  prompt.className = 'card-select-prompt';
+
+  cards.forEach((cardEl, i) => {
+    if (i === excludeIndex) {
+      cardEl.classList.add('card-excluded');
+      cardEl.classList.remove('card-selected');
+    } else if (selected.includes(i)) {
+      cardEl.classList.add('card-selected');
+      cardEl.classList.remove('card-excluded');
+    } else {
+      cardEl.classList.remove('card-selected', 'card-excluded');
+    }
+  });
+
+  // Show/remove confirm button
+  let confirmBtn = document.getElementById('card-select-confirm');
+  if (selected.length === count) {
+    if (!confirmBtn) {
+      confirmBtn = document.createElement('button');
+      confirmBtn.id = 'card-select-confirm';
+      confirmBtn.textContent = 'Confirm Discard';
+      confirmBtn.addEventListener('click', () => {
+        const cb = cardSelectionState.onConfirm;
+        const sel = [...cardSelectionState.selected];
+        exitCardSelectionMode();
+        cb(sel);
+      });
+      prompt.parentNode.insertBefore(confirmBtn, prompt.nextSibling);
+    }
+  } else if (confirmBtn) {
+    confirmBtn.remove();
+  }
+}
+
+function exitCardSelectionMode() {
+  cardSelectionState = null;
+  const prompt = document.getElementById('card-select-prompt');
+  if (prompt) prompt.remove();
+  const confirmBtn = document.getElementById('card-select-confirm');
+  if (confirmBtn) confirmBtn.remove();
+  // Re-render to clear selection styles
+  if (gameState) render();
 }
 
 // --- Helper: get player/opponent state ---
@@ -401,6 +518,19 @@ function renderHand(cards, containerId, isMyHand) {
     if (isMyHand) {
       cardEl.addEventListener('click', (e) => {
         e.stopPropagation();
+        // Card selection mode (for discards)
+        if (cardSelectionState) {
+          if (index === cardSelectionState.excludeIndex) return;
+          const sel = cardSelectionState.selected;
+          const idx = sel.indexOf(index);
+          if (idx >= 0) {
+            sel.splice(idx, 1);
+          } else if (sel.length < cardSelectionState.count) {
+            sel.push(index);
+          }
+          renderCardSelection();
+          return;
+        }
         if (!isMyTurn()) return;
         if (gameState.turn_state !== 'ChoosingAction') return;
         showCardPopup(cardEl, index);

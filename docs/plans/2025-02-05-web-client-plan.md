@@ -48,7 +48,7 @@ Fix any visual or functional issues found via Playwright before marking a task c
 - [x] Task 4: Render hands with card images
 - [x] Task 5: Choosing Action — Play Instant and basic actions
 - [x] Task 6: Choosing Action — Activate System
-- [ ] Task 7: Choosing Action — Hot-Wire cards
+- [x] Task 7: Choosing Action — Hot-Wire cards
 - [ ] Task 8: Resolving Effects — simple effects
 - [ ] Task 9: Resolving Effects — effects with choices
 - [ ] Task 10: Polish and pass-turn discard flow
@@ -386,7 +386,7 @@ git commit -m "feat: implement system activation with energy distribution dialog
 - Modify: `shields-up-engineering-client/game.js`
 - Modify: `shields-up-engineering-client/style.css`
 
-- [ ] **Step 1: Hot-Wire flow**
+- [x] **Step 1: Hot-Wire flow**
 
 When "Hot-Wire" is clicked from the card popup:
 1. Highlight the clicked card
@@ -394,18 +394,18 @@ When "Hot-Wire" is clicked from the card popup:
 3. After picking system: if card has `cards_to_discard > 0`, prompt to select that many other cards from hand
 4. Send: `{ "ChooseAction": { "action": { "HotWireCard": { "card_index": N, "system": "<System>", "indices_to_discard": [...] } } } }`
 
-- [ ] **Step 2: Card selection mode for discards**
+- [x] **Step 2: Card selection mode for discards**
 
 - When discards are needed, enter a "select cards" mode
 - Cards in hand become toggleable (except the card being hot-wired)
 - Show a count: "Select N cards to discard"
 - Confirm button when correct number selected
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Hot-wire a card onto a system. Try one with a discard cost. Verify the system's hot-wire count increases in the UI.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add shields-up-engineering-client/

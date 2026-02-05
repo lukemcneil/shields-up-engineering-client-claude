@@ -467,3 +467,63 @@ body {
 .modal-buttons .cancel-btn:hover {
   background: #555;
 }
+
+/* System Picker */
+.system-picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.system-pick-btn {
+  background: #1a2a4a;
+  color: #e0e0e0;
+  border: 1px solid #334;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 100px;
+}
+
+.system-pick-btn:hover {
+  background: #e8622a;
+  color: #fff;
+}
+
+/* Card Selection Mode */
+.card-select-prompt {
+  color: #fd4;
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+
+#card-select-confirm {
+  background: #e8622a;
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 4px 0;
+}
+
+#card-select-confirm:hover {
+  background: #ff7a3a;
+}
+
+.card.card-selected {
+  outline: 3px solid #e8622a;
+  outline-offset: -3px;
+  transform: translateY(-8px);
+}
+
+.card.card-excluded {
+  opacity: 0.3;
+  pointer-events: none;
+}
