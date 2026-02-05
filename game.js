@@ -695,15 +695,167 @@ function renderEffectChips() {
   playerArea.insertBefore(container, playerHand);
 }
 
-// Placeholder for complex effect resolution (Task 9)
+// --- Complex effect resolution ---
 function resolveComplexEffect(effect) {
   const name = getEffectName(effect);
-  showError(`Complex effect "${name}" resolution not yet implemented`);
+
+  switch (name) {
+    case 'DiscardOverload':
+      showSystemPickerModal('Discard overload from which system?', (system) => {
+        sendAction({ ResolveEffect: { resolve_effect: { DiscardOverload: { system } } } });
+      });
+      break;
+
+    case 'OpponentGainOverload':
+      showSystemPickerModal('Give opponent overload on which system?', (system) => {
+        sendAction({ ResolveEffect: { resolve_effect: { OpponentGainOverload: { system } } } });
+      });
+      break;
+
+    case 'MoveEnergy':
+      showDualSystemPickerModal('Move Energy', 'From system:', 'To system:', (fromSystem, toSystem) => {
+        sendAction({ ResolveEffect: { resolve_effect: { MoveEnergy: { from_system: fromSystem, to_system: toSystem } } } });
+      });
+      break;
+
+    case 'MoveEnergyTo': {
+      // The effect has a fixed target system embedded: { MoveEnergyTo: "ShieldGenerator" }
+      const toSystem = effect[name];
+      showSystemPickerModal(`Move energy to ${SYSTEM_NAMES[toSystem] || toSystem} from:`, (fromSystem) => {
+        sendAction({ ResolveEffect: { resolve_effect: { MoveEnergyTo: { from_system: fromSystem, to_system: toSystem } } } });
+      });
+      break;
+    }
+
+    case 'OpponentMoveEnergy':
+      showDualSystemPickerModal('Move Opponent Energy', 'From system:', 'To system:', (fromSystem, toSystem) => {
+        sendAction({ ResolveEffect: { resolve_effect: { OpponentMoveEnergy: { from_system: fromSystem, to_system: toSystem } } } });
+      });
+      break;
+
+    case 'PlayHotWire':
+      startPlayHotWireEffect();
+      break;
+
+    default:
+      showError(`Unknown complex effect: ${name}`);
+  }
 }
 
-// Placeholder for OpponentDiscard mode (Task 9)
+// --- Dual system picker modal (from + to) ---
+function showDualSystemPickerModal(title, fromLabel, toLabel, onPick) {
+  closeModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'energy-modal';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+
+  const heading = document.createElement('h3');
+  heading.textContent = title;
+  modal.appendChild(heading);
+
+  let selectedFrom = null;
+
+  const fromHeading = document.createElement('div');
+  fromHeading.className = 'picker-label';
+  fromHeading.textContent = fromLabel;
+  modal.appendChild(fromHeading);
+
+  const fromRow = document.createElement('div');
+  fromRow.className = 'system-picker-row';
+
+  SYSTEM_ENUMS.forEach(sysEnum => {
+    const btn = document.createElement('button');
+    btn.textContent = SYSTEM_NAMES[sysEnum];
+    btn.className = 'system-pick-btn';
+    btn.addEventListener('click', () => {
+      selectedFrom = sysEnum;
+      fromRow.querySelectorAll('.system-pick-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      // Show to-system picker
+      toSection.classList.remove('hidden');
+    });
+    fromRow.appendChild(btn);
+  });
+  modal.appendChild(fromRow);
+
+  const toSection = document.createElement('div');
+  toSection.className = 'hidden';
+
+  const toHeading = document.createElement('div');
+  toHeading.className = 'picker-label';
+  toHeading.textContent = toLabel;
+  toSection.appendChild(toHeading);
+
+  const toRow = document.createElement('div');
+  toRow.className = 'system-picker-row';
+
+  SYSTEM_ENUMS.forEach(sysEnum => {
+    const btn = document.createElement('button');
+    btn.textContent = SYSTEM_NAMES[sysEnum];
+    btn.className = 'system-pick-btn';
+    btn.addEventListener('click', () => {
+      closeModal();
+      onPick(selectedFrom, sysEnum);
+    });
+    toRow.appendChild(btn);
+  });
+  toSection.appendChild(toRow);
+  modal.appendChild(toSection);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.className = 'cancel-btn';
+  cancelBtn.style.marginTop = '12px';
+  cancelBtn.addEventListener('click', closeModal);
+  modal.appendChild(cancelBtn);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+// --- PlayHotWire effect resolution ---
+function startPlayHotWireEffect() {
+  const myHand = getMyState().hand;
+  if (myHand.length === 0) {
+    showError('No cards in hand to hot-wire');
+    return;
+  }
+
+  // Enter card selection mode to pick a card to hot-wire
+  // Use -1 as excludeIndex so no cards are excluded
+  cardSelectionState = { count: 1, excludeIndex: -1, selected: [], onConfirm: (selectedIndices) => {
+    const cardIndex = selectedIndices[0];
+    const card = myHand[cardIndex];
+    showSystemPickerModal('Hot-Wire to which system?', (system) => {
+      const discardsNeeded = card.hot_wire_cost.cards_to_discard;
+      if (discardsNeeded > 0) {
+        startCardSelectionMode(discardsNeeded, cardIndex, (discardIndices) => {
+          sendAction({ ResolveEffect: { resolve_effect: { PlayHotWire: { card_index: cardIndex, system: system, indices_to_discard: discardIndices } } } });
+        });
+      } else {
+        sendAction({ ResolveEffect: { resolve_effect: { PlayHotWire: { card_index: cardIndex, system: system, indices_to_discard: [] } } } });
+      }
+    });
+  }};
+  renderCardSelection();
+}
+
+// --- OpponentDiscard mode ---
 function startOpponentDiscardMode() {
-  showError('OpponentDiscard resolution not yet implemented');
+  // The non-active player picks a card from their hand to discard
+  const myHand = getMyState().hand;
+  if (myHand.length === 0) {
+    showError('No cards in hand to discard');
+    return;
+  }
+
+  cardSelectionState = { count: 1, excludeIndex: -1, selected: [], onConfirm: (selectedIndices) => {
+    sendAction({ ResolveEffect: { resolve_effect: { OpponentDiscard: { card_index: selectedIndices[0] } } } });
+  }};
+  renderCardSelection();
 }
 
 // Close popup on click outside

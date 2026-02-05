@@ -596,3 +596,17 @@ body {
   opacity: 0.4;
   cursor: default;
 }
+
+/* Picker labels */
+.picker-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin: 8px 0 4px;
+}
+
+/* Selected system button in dual picker */
+.system-pick-btn.selected {
+  background: #e8622a;
+  color: #fff;
+  border-color: #e8622a;
+}
