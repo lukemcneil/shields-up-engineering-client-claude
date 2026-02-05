@@ -47,7 +47,7 @@ Fix any visual or functional issues found via Playwright before marking a task c
 - [x] Task 3: Render game state — player stats and systems
 - [x] Task 4: Render hands with card images
 - [x] Task 5: Choosing Action — Play Instant and basic actions
-- [ ] Task 6: Choosing Action — Activate System
+- [x] Task 6: Choosing Action — Activate System
 - [ ] Task 7: Choosing Action — Hot-Wire cards
 - [ ] Task 8: Resolving Effects — simple effects
 - [ ] Task 9: Resolving Effects — effects with choices
@@ -334,19 +334,19 @@ git commit -m "feat: implement play instant, pass turn, reduce short circuits ac
 - Modify: `shields-up-engineering-client/game.js`
 - Modify: `shields-up-engineering-client/style.css`
 
-- [ ] **Step 1: Make system panels clickable**
+- [x] **Step 1: Make system panels clickable**
 
 During ChoosingAction + your turn:
 - Non-overloaded system panels get an "Activate" button
 - Clicking sends ActivateSystem
 
-- [ ] **Step 2: Non-Fusion activation**
+- [x] **Step 2: Non-Fusion activation**
 
 For Weapons, Life Support, Shield Generator:
 - Send: `{ "ChooseAction": { "action": { "ActivateSystem": { "system": "<System>", "energy_to_use": null, "energy_distribution": null } } } }`
 - Server uses default energy from the system itself
 
-- [ ] **Step 3: Fusion Reactor activation — energy distribution dialog**
+- [x] **Step 3: Fusion Reactor activation — energy distribution dialog**
 
 When activating Fusion Reactor:
 - Show a modal/overlay with number inputs for each system (Fusion Reactor, Weapons, Life Support, Shield Generator)
@@ -362,16 +362,16 @@ When activating Fusion Reactor:
   } } } }
   ```
 
-- [ ] **Step 4: Discard Overload button on overloaded systems**
+- [x] **Step 4: Discard Overload button on overloaded systems**
 
 - If a system has overloads > 0, show "Remove Overload" button on that panel
 - Sends: `{ "ChooseAction": { "action": { "DiscardOverload": { "system": "<System>" } } } }`
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Activate weapons — should trigger resolving effects. Activate Fusion Reactor — dialog appears, distribute energy, confirm. Remove overload from a disabled system.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add shields-up-engineering-client/

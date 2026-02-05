@@ -75,12 +75,30 @@ const CARD_IMAGES = {
 };
 
 const SYSTEM_KEYS = ['fusion_reactor', 'life_support', 'shield_generator', 'weapons_system'];
+const SYSTEM_ENUMS = ['FusionReactor', 'LifeSupport', 'ShieldGenerator', 'Weapons'];
 const SYSTEM_NAMES = {
   FusionReactor: 'Fusion Reactor',
   LifeSupport: 'Life Support',
   ShieldGenerator: 'Shield Generator',
   Weapons: 'Weapons System',
 };
+
+// --- System energy helpers ---
+// Starting StoreMoreEnergy counts per system (matches server starting_effects)
+const STARTING_STORE_MORE = {
+  FusionReactor: 5,
+  LifeSupport: 3,
+  ShieldGenerator: 3,
+  Weapons: 3,
+};
+
+function getAllowedEnergy(systemState) {
+  const base = STARTING_STORE_MORE[systemState.system] || 0;
+  const fromHotWires = systemState.hot_wires.reduce((count, card) => {
+    return count + card.hot_wire_effects.filter(e => e === 'StoreMoreEnergy').length;
+  }, 0);
+  return base + fromHotWires;
+}
 
 // --- Send action to server ---
 function sendAction(userAction) {
@@ -196,10 +214,13 @@ function renderPlayerStats(playerState, elementId) {
 function renderSystems(playerState, containerId) {
   const container = document.getElementById(containerId);
   const panels = container.querySelectorAll('.system-panel');
+  const isPlayerSystems = containerId === 'player-systems';
+  const canAct = isMyTurn() && gameState.turn_state === 'ChoosingAction';
 
   SYSTEM_KEYS.forEach((key, i) => {
     const sys = playerState[key];
     const panel = panels[i];
+    const systemEnum = SYSTEM_ENUMS[i];
 
     const energyEl = panel.querySelector('.system-energy');
     const overloadEl = panel.querySelector('.system-overloads');
@@ -215,7 +236,126 @@ function renderSystems(playerState, containerId) {
     } else {
       panel.style.opacity = '1';
     }
+
+    // Remove old action buttons
+    panel.querySelectorAll('.system-action-btn').forEach(b => b.remove());
+
+    if (isPlayerSystems && canAct) {
+      // Activate button (only if not overloaded)
+      if (sys.overloads === 0) {
+        const activateBtn = document.createElement('button');
+        activateBtn.className = 'system-action-btn activate-btn';
+        activateBtn.textContent = 'Activate';
+        activateBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (systemEnum === 'FusionReactor') {
+            showEnergyDistributionDialog();
+          } else {
+            sendAction({ ChooseAction: { action: { ActivateSystem: { system: systemEnum, energy_to_use: null, energy_distribution: null } } } });
+          }
+        });
+        panel.appendChild(activateBtn);
+      }
+
+      // Discard Overload button
+      if (sys.overloads > 0) {
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'system-action-btn overload-btn';
+        removeBtn.textContent = 'Remove Overload';
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          sendAction({ ChooseAction: { action: { DiscardOverload: { system: systemEnum } } } });
+        });
+        panel.appendChild(removeBtn);
+      }
+    }
   });
+}
+
+// --- Energy Distribution Dialog (Fusion Reactor) ---
+function showEnergyDistributionDialog() {
+  closeModal();
+  const myState = getMyState();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'energy-modal';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+
+  const title = document.createElement('h3');
+  title.textContent = 'Distribute Energy';
+  modal.appendChild(title);
+
+  const inputs = {};
+  // Fusion Reactor's allowed energy = starting StoreMoreEnergy effects + hot-wire StoreMoreEnergy
+  const totalAllowed = getAllowedEnergy(myState.fusion_reactor);
+
+  const currentTotal = SYSTEM_KEYS.reduce((sum, key) => sum + myState[key].energy, 0);
+
+  const totalDisplay = document.createElement('div');
+  totalDisplay.className = 'energy-total';
+  totalDisplay.textContent = `Total: ${currentTotal} / ${totalAllowed}`;
+  modal.appendChild(totalDisplay);
+
+  SYSTEM_ENUMS.forEach((sysEnum, i) => {
+    const key = SYSTEM_KEYS[i];
+    const sys = myState[key];
+    const isOverloaded = sys.overloads > 0;
+
+    const row = document.createElement('div');
+    row.className = 'energy-row';
+
+    const label = document.createElement('label');
+    label.textContent = SYSTEM_NAMES[sysEnum];
+    row.appendChild(label);
+
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.value = isOverloaded ? '0' : String(sys.energy);
+    input.disabled = isOverloaded;
+    input.addEventListener('input', () => {
+      const sum = SYSTEM_ENUMS.reduce((s, se) => s + (parseInt(inputs[se].value) || 0), 0);
+      totalDisplay.textContent = `Total: ${sum} / ${totalAllowed}`;
+      confirmBtn.disabled = sum !== totalAllowed;
+    });
+
+    inputs[sysEnum] = input;
+    row.appendChild(input);
+    modal.appendChild(row);
+  });
+
+  const btnRow = document.createElement('div');
+  btnRow.className = 'modal-buttons';
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = 'Confirm';
+  confirmBtn.addEventListener('click', () => {
+    const distribution = {};
+    SYSTEM_ENUMS.forEach(se => {
+      distribution[se] = parseInt(inputs[se].value) || 0;
+    });
+    sendAction({ ChooseAction: { action: { ActivateSystem: { system: 'FusionReactor', energy_to_use: null, energy_distribution: distribution } } } });
+    closeModal();
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.className = 'cancel-btn';
+  cancelBtn.addEventListener('click', closeModal);
+
+  btnRow.appendChild(confirmBtn);
+  btnRow.appendChild(cancelBtn);
+  modal.appendChild(btnRow);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+function closeModal() {
+  const modal = document.getElementById('energy-modal');
+  if (modal) modal.remove();
 }
 
 function renderGameInfoBar() {
