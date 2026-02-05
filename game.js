@@ -316,6 +316,25 @@ function render() {
   renderGameInfoBar();
   renderActionButtons();
   renderEffectChips();
+
+  // Visual feedback — highlight active player area
+  const playerArea = document.getElementById('player-area');
+  const opponentArea = document.getElementById('opponent-area');
+  const infoBar = document.getElementById('game-info-bar');
+
+  if (isMyTurn()) {
+    playerArea.classList.add('active-area');
+    playerArea.classList.remove('inactive-area');
+    opponentArea.classList.add('inactive-area');
+    opponentArea.classList.remove('active-area');
+    infoBar.classList.add('my-turn');
+  } else {
+    playerArea.classList.add('inactive-area');
+    playerArea.classList.remove('active-area');
+    opponentArea.classList.remove('inactive-area');
+    opponentArea.classList.add('active-area');
+    infoBar.classList.remove('my-turn');
+  }
 }
 
 function renderPlayerStats(playerState, elementId) {
@@ -347,6 +366,27 @@ function renderSystems(playerState, containerId) {
     energyEl.textContent = `Energy: ${sys.energy}`;
     overloadEl.textContent = `Overloads: ${sys.overloads}`;
     hotwireEl.textContent = `Hot-Wires: ${sys.hot_wires.length}`;
+
+    // Render hot-wired card thumbnails
+    let hwContainer = panel.querySelector('.hotwire-cards');
+    if (hwContainer) hwContainer.remove();
+    if (sys.hot_wires.length > 0) {
+      hwContainer = document.createElement('div');
+      hwContainer.className = 'hotwire-cards';
+      sys.hot_wires.forEach(card => {
+        const thumb = document.createElement('img');
+        const filename = CARD_IMAGES[card.name];
+        if (filename) {
+          thumb.src = `cards/${filename}`;
+        }
+        thumb.alt = card.name;
+        thumb.title = card.name;
+        thumb.className = 'hotwire-thumb';
+        thumb.draggable = false;
+        hwContainer.appendChild(thumb);
+      });
+      panel.appendChild(hwContainer);
+    }
 
     // Dim panel if overloaded
     if (sys.overloads > 0) {
@@ -570,12 +610,11 @@ document.getElementById('reduce-sc-btn').addEventListener('click', () => {
   sendAction({ ChooseAction: { action: 'ReduceShortCircuits' } });
 });
 
-// --- Discard selection for pass turn (placeholder, refined in Task 10) ---
-let discardMode = null;
+// --- Discard selection for pass turn ---
 function startDiscardSelection(count) {
-  console.log('Need to discard', count, 'cards — not yet implemented');
-  // For now just pass with empty discards
-  sendAction({ Pass: { card_indices_to_discard: [] } });
+  startCardSelectionMode(count, -1, (selectedIndices) => {
+    sendAction({ Pass: { card_indices_to_discard: selectedIndices } });
+  });
 }
 
 // --- Effect resolution ---

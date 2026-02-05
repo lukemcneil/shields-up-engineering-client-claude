@@ -610,3 +610,32 @@ body {
   color: #fff;
   border-color: #e8622a;
 }
+
+/* Hot-wired card thumbnails on system panels */
+.hotwire-cards {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.hotwire-thumb {
+  width: 40px;
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: default;
+}
+
+/* Visual feedback — active/inactive areas */
+.inactive-area {
+  opacity: 0.6;
+}
+
+.active-area {
+  opacity: 1;
+}
+
+#game-info-bar.my-turn {
+  border-color: #e8622a;
+  box-shadow: 0 0 8px rgba(232, 98, 42, 0.3);
+}
