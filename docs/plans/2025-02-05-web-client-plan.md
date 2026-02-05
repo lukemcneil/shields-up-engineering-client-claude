@@ -49,9 +49,9 @@ Fix any visual or functional issues found via Playwright before marking a task c
 - [x] Task 5: Choosing Action — Play Instant and basic actions
 - [x] Task 6: Choosing Action — Activate System
 - [x] Task 7: Choosing Action — Hot-Wire cards
-- [ ] Task 8: Resolving Effects — simple effects
-- [ ] Task 9: Resolving Effects — effects with choices
-- [ ] Task 10: Polish and pass-turn discard flow
+- [x] Task 8: Resolving Effects — simple effects
+- [x] Task 9: Resolving Effects — effects with choices
+- [x] Task 10: Polish and pass-turn discard flow
 - [ ] Task 11: Final integration test and cleanup
 
 ---
@@ -420,11 +420,11 @@ git commit -m "feat: implement hot-wire card action with system and discard sele
 - Modify: `shields-up-engineering-client/game.js`
 - Modify: `shields-up-engineering-client/style.css`
 
-- [ ] **Step 1: Render effect chips**
+- [x] **Step 1: Render effect chips**
 
 During ResolvingEffects, render each effect in the effects list as a clickable chip/button in the game info bar area or above the player's hand.
 
-- [ ] **Step 2: Implement simple effect resolution**
+- [x] **Step 2: Implement simple effect resolution**
 
 For effects that need no extra input, clicking the chip sends:
 - Attack → `{ "ResolveEffect": { "resolve_effect": "Attack" } }`
@@ -437,7 +437,7 @@ For effects that need no extra input, clicking the chip sends:
 - OpponentLoseShield → `{ "ResolveEffect": { "resolve_effect": "OpponentLoseShield" } }`
 - BypassShield → `{ "ResolveEffect": { "resolve_effect": "BypassShield" } }`
 
-- [ ] **Step 3: Implement StopResolvingEffects button**
+- [x] **Step 3: Implement StopResolvingEffects button**
 
 - Show "Stop Resolving" button during ResolvingEffects
 - Sends: `"StopResolvingEffects"`
@@ -445,11 +445,11 @@ For effects that need no extra input, clicking the chip sends:
 
 Note: The client can check which effects are mandatory. GainShortCircuit and OpponentDiscard must be resolved. All others are optional.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Play an instant card, resolve its effects by clicking chips. Stop resolving optional effects. Verify state transitions correctly.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add shields-up-engineering-client/
@@ -463,13 +463,13 @@ git commit -m "feat: implement simple effect resolution and stop resolving"
 **Files:**
 - Modify: `shields-up-engineering-client/game.js`
 
-- [ ] **Step 1: System picker for targeted effects**
+- [x] **Step 1: System picker for targeted effects**
 
 For effects that need a system choice, clicking the chip opens a system picker (4 buttons):
 - DiscardOverload → pick system → `{ "ResolveEffect": { "resolve_effect": { "DiscardOverload": { "system": "<System>" } } } }`
 - OpponentGainOverload → pick system → `{ "ResolveEffect": { "resolve_effect": { "OpponentGainOverload": { "system": "<System>" } } } }`
 
-- [ ] **Step 2: Dual-system picker for move energy effects**
+- [x] **Step 2: Dual-system picker for move energy effects**
 
 For MoveEnergy, MoveEnergyTo, OpponentMoveEnergy — pick from-system and to-system:
 - MoveEnergy → `{ "ResolveEffect": { "resolve_effect": { "MoveEnergy": { "from_system": "...", "to_system": "..." } } } }`
@@ -478,24 +478,24 @@ For MoveEnergy, MoveEnergyTo, OpponentMoveEnergy — pick from-system and to-sys
 
 Note: MoveEnergyTo has a fixed target system embedded in the effect (e.g., `MoveEnergyTo(ShieldGenerator)`). The chip should show the target and only ask for from-system.
 
-- [ ] **Step 3: PlayHotWire effect resolution**
+- [x] **Step 3: PlayHotWire effect resolution**
 
 When PlayHotWire chip is clicked:
 - Reuse the hot-wire flow from Task 7 (card selection, system selection, discard selection)
 - Send as ResolveEffect instead of ChooseAction
 
-- [ ] **Step 4: OpponentDiscard**
+- [x] **Step 4: OpponentDiscard**
 
 When OpponentDiscard is in the effects list:
 - The non-active player's UI becomes interactive for this one action
 - They see their hand with a prompt: "Opponent played a discard effect. Pick a card to discard."
 - On card click, sends (as the non-active player): `{ "ResolveEffect": { "resolve_effect": { "OpponentDiscard": { "card_index": N } } } }`
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Test move energy effects, overload targeting, and opponent discard flow across two tabs.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add shields-up-engineering-client/game.js
@@ -510,35 +510,35 @@ git commit -m "feat: implement effect resolution with system pickers and opponen
 - Modify: `shields-up-engineering-client/game.js`
 - Modify: `shields-up-engineering-client/style.css`
 
-- [ ] **Step 1: Pass turn with hand-size discard**
+- [x] **Step 1: Pass turn with hand-size discard**
 
 When passing with hand > 5 cards:
 - Enter card selection mode: "Discard down to 5 cards. Select N cards."
 - Toggleable cards, confirm button
 - Send: `{ "Pass": { "card_indices_to_discard": [...] } }`
 
-- [ ] **Step 2: Show hot-wired cards on system panels**
+- [x] **Step 2: Show hot-wired cards on system panels**
 
 - Below each system, show small thumbnails of hot-wired card faces
 - Clickable to expand/view the card
 
-- [ ] **Step 3: Visual feedback**
+- [x] **Step 3: Visual feedback**
 
 - Highlight active player's area
 - Dim non-active player's area
 - Pulse/highlight the game info bar when it's your turn
 - Color-code effect chips (red for mandatory, blue for optional)
 
-- [ ] **Step 4: Error toast styling**
+- [x] **Step 4: Error toast styling**
 
 - Red background toast in corner
 - Auto-dismiss with fade-out
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Full playthrough: connect two tabs, play multiple turns, hot-wire cards, activate systems, resolve effects, pass turns with discards. Verify everything works end-to-end.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add shields-up-engineering-client/
