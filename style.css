@@ -223,10 +223,38 @@ body {
 /* Hand Row */
 .hand-row {
   display: flex;
-  gap: -20px;
   padding: 4px 0;
   min-height: 40px;
-  align-items: center;
+  align-items: flex-end;
+}
+
+/* Cards */
+.card {
+  flex: 0 0 auto;
+  width: 120px;
+  margin-right: -30px;
+  transition: transform 0.15s ease;
+  cursor: default;
+}
+
+.card:last-child {
+  margin-right: 0;
+}
+
+.card img {
+  width: 100%;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.card.my-card {
+  cursor: pointer;
+}
+
+.card.my-card:hover {
+  transform: translateY(-12px);
+  z-index: 10;
 }
 
 /* Action Buttons */

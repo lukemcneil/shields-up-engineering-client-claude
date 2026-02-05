@@ -113,6 +113,9 @@ function render() {
   renderSystems(oppState, 'opponent-systems');
   renderSystems(myState, 'player-systems');
 
+  renderHand(oppState.hand, 'opponent-hand', false);
+  renderHand(myState.hand, 'player-hand', true);
+
   renderGameInfoBar();
 }
 
@@ -169,4 +172,28 @@ function renderGameInfoBar() {
   bar.querySelector('.turn-state').textContent = stateText;
 
   bar.querySelector('.deck-info').textContent = `Deck: ${gameState.deck.length} | Discard: ${gameState.discard_pile.length}`;
+}
+
+// --- Render hand ---
+function renderHand(cards, containerId, isMyHand) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  cards.forEach((card, index) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'card' + (isMyHand ? ' my-card' : '');
+    cardEl.dataset.index = index;
+    cardEl.title = card.name;
+
+    const img = document.createElement('img');
+    const filename = CARD_IMAGES[card.name];
+    if (filename) {
+      img.src = `cards/${filename}`;
+    }
+    img.alt = card.name;
+    img.draggable = false;
+
+    cardEl.appendChild(img);
+    container.appendChild(cardEl);
+  });
 }

@@ -45,7 +45,7 @@ Fix any visual or functional issues found via Playwright before marking a task c
 - [x] Task 1: Project scaffolding and lobby screen
 - [x] Task 2: Game board layout — static structure
 - [x] Task 3: Render game state — player stats and systems
-- [ ] Task 4: Render hands with card images
+- [x] Task 4: Render hands with card images
 - [ ] Task 5: Choosing Action — Play Instant and basic actions
 - [ ] Task 6: Choosing Action — Activate System
 - [ ] Task 7: Choosing Action — Hot-Wire cards
@@ -242,7 +242,7 @@ git commit -m "feat: render player stats, systems, and game info from server sta
 - Modify: `shields-up-engineering-client/game.js`
 - Modify: `shields-up-engineering-client/style.css`
 
-- [ ] **Step 1: Implement renderHand()**
+- [x] **Step 1: Implement renderHand()**
 
 Write `renderHand(cards, containerElement, isMyHand)`:
 - Clear the container
@@ -252,17 +252,17 @@ Write `renderHand(cards, containerElement, isMyHand)`:
 - If `isMyHand` is true, add click handler (implemented in later task — for now just add a `data-index` attribute)
 - Style cards ~150px wide, slight overlap for space
 
-- [ ] **Step 2: Style cards**
+- [x] **Step 2: Style cards**
 
 - Card images: fixed width, slight border-radius, subtle box-shadow
 - Hover: lift up slightly (transform translateY)
 - Hand container: horizontal flex with negative margin for overlap
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Both players' hands should show card images. Hovering should lift cards.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add shields-up-engineering-client/
