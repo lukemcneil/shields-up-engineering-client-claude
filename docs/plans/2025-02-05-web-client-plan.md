@@ -52,7 +52,7 @@ Fix any visual or functional issues found via Playwright before marking a task c
 - [x] Task 8: Resolving Effects — simple effects
 - [x] Task 9: Resolving Effects — effects with choices
 - [x] Task 10: Polish and pass-turn discard flow
-- [ ] Task 11: Final integration test and cleanup
+- [x] Task 11: Final integration test and cleanup
 
 ---
 
@@ -549,22 +549,22 @@ git commit -m "feat: polish UI with hot-wire display, visual feedback, and pass-
 
 ### Task 11: Final integration test and cleanup
 
-- [ ] **Step 1: Full game playthrough**
+- [x] **Step 1: Full game playthrough**
 
 Play a complete game across two browser tabs until someone reaches 5 hull damage (or 12 short circuits if server supports it). Document any bugs found.
 
-- [ ] **Step 2: Fix any bugs found**
+- [x] **Step 2: Fix any bugs found**
 
-Address issues from the playthrough.
+Address issues from the playthrough. Fixed: Fusion Reactor activation produced empty ResolvingEffects state that stuck the UI. Added auto-StopResolvingEffects when effects list is empty.
 
-- [ ] **Step 3: Update CLAUDE.md**
+- [x] **Step 3: Update CLAUDE.md**
 
 Add client info to the existing CLAUDE.md or create one in the client directory noting:
 - How to run the client (`python3 -m http.server 3000` from client dir)
 - Requires server running on port 8000
 - Open two tabs for local play
 
-- [ ] **Step 4: Final commit**
+- [x] **Step 4: Final commit**
 
 ```bash
 git add -A

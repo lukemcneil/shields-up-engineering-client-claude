@@ -44,6 +44,15 @@ connectBtn.addEventListener('click', () => {
 
     // Full GameState
     gameState = data;
+
+    // Auto-resolve empty effects list (e.g. Fusion Reactor activation produces no effects)
+    if (gameState.players_turn === myPlayer) {
+      const ts = gameState.turn_state;
+      if (typeof ts === 'object' && ts.ResolvingEffects && ts.ResolvingEffects.effects.length === 0) {
+        sendAction('StopResolvingEffects');
+      }
+    }
+
     render();
   });
 
