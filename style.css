@@ -527,3 +527,72 @@ body {
   opacity: 0.3;
   pointer-events: none;
 }
+
+/* Effect Chips */
+#effect-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.effect-chips-label {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-right: 4px;
+}
+
+.effect-chip {
+  background: #1a3a5a;
+  color: #6ec;
+  border: 1px solid #334;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-family: inherit;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.effect-chip:hover:not(:disabled) {
+  background: #2a5a7a;
+  border-color: #6ec;
+}
+
+.effect-chip.mandatory {
+  background: #3a1a2a;
+  color: #f88;
+  border-color: #644;
+}
+
+.effect-chip.mandatory:hover:not(:disabled) {
+  background: #5a2a3a;
+  border-color: #f88;
+}
+
+.effect-chip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.effect-stop-btn {
+  background: #334;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  padding: 4px 14px;
+  font-size: 0.75rem;
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.effect-stop-btn:hover:not(:disabled) {
+  background: #555;
+  border-color: #888;
+}
+
+.effect-stop-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

@@ -315,6 +315,7 @@ function render() {
 
   renderGameInfoBar();
   renderActionButtons();
+  renderEffectChips();
 }
 
 function renderPlayerStats(playerState, elementId) {
@@ -575,6 +576,134 @@ function startDiscardSelection(count) {
   console.log('Need to discard', count, 'cards — not yet implemented');
   // For now just pass with empty discards
   sendAction({ Pass: { card_indices_to_discard: [] } });
+}
+
+// --- Effect resolution ---
+
+// Effects that must be resolved before StopResolvingEffects is allowed
+const MANDATORY_EFFECTS = ['GainShortCircuit', 'OpponentDiscard'];
+
+// Simple effects that need no extra input
+const SIMPLE_EFFECTS = [
+  'Attack', 'Shield', 'GainShortCircuit', 'LoseShortCircuit',
+  'Draw', 'GainAction', 'OpponentGainShortCircuit', 'OpponentLoseShield', 'BypassShield',
+];
+
+function getEffectName(effect) {
+  if (typeof effect === 'string') return effect;
+  // Object-form effects like { MoveEnergyTo: "ShieldGenerator" }
+  return Object.keys(effect)[0];
+}
+
+function getEffectDisplayName(effect) {
+  const name = getEffectName(effect);
+  // Pretty-print camelCase to spaced words
+  return name.replace(/([A-Z])/g, ' $1').trim();
+}
+
+function isEffectMandatory(effect) {
+  return MANDATORY_EFFECTS.includes(getEffectName(effect));
+}
+
+function isSimpleEffect(effect) {
+  return SIMPLE_EFFECTS.includes(getEffectName(effect));
+}
+
+function renderEffectChips() {
+  // Remove old container if present
+  let container = document.getElementById('effect-chips');
+  if (container) container.remove();
+
+  if (!gameState) return;
+  const ts = gameState.turn_state;
+  if (typeof ts !== 'object' || !ts.ResolvingEffects) return;
+
+  const effects = ts.ResolvingEffects.effects;
+  if (!effects || effects.length === 0) return;
+
+  container = document.createElement('div');
+  container.id = 'effect-chips';
+
+  const label = document.createElement('span');
+  label.className = 'effect-chips-label';
+  label.textContent = 'Effects to resolve:';
+  container.appendChild(label);
+
+  const hasMandatory = effects.some(isEffectMandatory);
+
+  effects.forEach((effect, index) => {
+    const chip = document.createElement('button');
+    chip.className = 'effect-chip';
+    chip.textContent = getEffectDisplayName(effect);
+
+    if (isEffectMandatory(effect)) {
+      chip.classList.add('mandatory');
+    }
+
+    const effectName = getEffectName(effect);
+
+    // Determine if this player can click this effect
+    const isOpponentDiscard = effectName === 'OpponentDiscard';
+    const activePlayer = gameState.players_turn;
+    const opponentPlayer = activePlayer === 'Player1' ? 'Player2' : 'Player1';
+
+    // OpponentDiscard is resolved by the non-active player
+    if (isOpponentDiscard) {
+      if (myPlayer !== opponentPlayer) {
+        chip.disabled = true;
+        chip.title = 'Opponent must discard';
+      } else {
+        chip.title = 'Pick a card from your hand to discard';
+        chip.addEventListener('click', () => {
+          startOpponentDiscardMode();
+        });
+      }
+    } else if (myPlayer !== activePlayer) {
+      chip.disabled = true;
+    } else if (isSimpleEffect(effect)) {
+      chip.addEventListener('click', () => {
+        sendAction({ ResolveEffect: { resolve_effect: effectName } });
+      });
+    } else {
+      // Complex effects — handled in Task 9
+      chip.addEventListener('click', () => {
+        resolveComplexEffect(effect);
+      });
+    }
+
+    container.appendChild(chip);
+  });
+
+  // Stop Resolving button
+  if (myPlayer === gameState.players_turn) {
+    const stopBtn = document.createElement('button');
+    stopBtn.className = 'effect-stop-btn';
+    stopBtn.textContent = 'Stop Resolving';
+    stopBtn.disabled = hasMandatory;
+    if (hasMandatory) {
+      stopBtn.title = 'Must resolve mandatory effects first';
+    }
+    stopBtn.addEventListener('click', () => {
+      sendAction('StopResolvingEffects');
+    });
+    container.appendChild(stopBtn);
+  }
+
+  // Insert above player hand
+  const playerArea = document.getElementById('player-area');
+  const playerHand = document.getElementById('player-hand');
+  playerArea.insertBefore(container, playerHand);
+}
+
+// Placeholder for complex effect resolution (Task 9)
+function resolveComplexEffect(effect) {
+  const name = getEffectName(effect);
+  showError(`Complex effect "${name}" resolution not yet implemented`);
+}
+
+// Placeholder for OpponentDiscard mode (Task 9)
+function startOpponentDiscardMode() {
+  showError('OpponentDiscard resolution not yet implemented');
 }
 
 // Close popup on click outside
