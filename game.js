@@ -273,7 +273,8 @@ function renderCardSelection() {
     prompt.id = 'card-select-prompt';
     container.parentNode.insertBefore(prompt, container);
   }
-  prompt.textContent = `Select ${count} card(s) to discard (${selected.length}/${count})`;
+  const promptLabel = cardSelectionState.promptLabel || `Select ${count} card(s) to discard`;
+  prompt.textContent = `${promptLabel} (${selected.length}/${count})`;
   prompt.className = 'card-select-prompt';
 
   cards.forEach((cardEl, i) => {
@@ -294,7 +295,7 @@ function renderCardSelection() {
     if (!confirmBtn) {
       confirmBtn = document.createElement('button');
       confirmBtn.id = 'card-select-confirm';
-      confirmBtn.textContent = 'Confirm Discard';
+      confirmBtn.textContent = cardSelectionState.confirmLabel || 'Confirm Discard';
       confirmBtn.addEventListener('click', () => {
         const cb = cardSelectionState.onConfirm;
         const sel = [...cardSelectionState.selected];
@@ -899,7 +900,7 @@ function startPlayHotWireEffect() {
 
   // Enter card selection mode to pick a card to hot-wire
   // Use -1 as excludeIndex so no cards are excluded
-  cardSelectionState = { count: 1, excludeIndex: -1, selected: [], onConfirm: (selectedIndices) => {
+  cardSelectionState = { count: 1, excludeIndex: -1, selected: [], promptLabel: 'Select a card to hot-wire', confirmLabel: 'Confirm Hot-Wire', onConfirm: (selectedIndices) => {
     const cardIndex = selectedIndices[0];
     const card = myHand[cardIndex];
     showSystemPickerModal('Hot-Wire to which system?', (system) => {
