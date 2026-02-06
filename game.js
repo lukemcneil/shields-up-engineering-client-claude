@@ -198,9 +198,15 @@ function showCardPopup(cardEl, cardIndex) {
 
 // --- Hot-Wire flow ---
 function startHotWireFlow(cardIndex) {
-  const card = getMyState().hand[cardIndex];
+  const myHand = getMyState().hand;
+  const card = myHand[cardIndex];
+  const discardsNeeded = card.hot_wire_cost.cards_to_discard;
+  // Check if there are enough other cards to pay the discard cost
+  if (discardsNeeded > 0 && myHand.length - 1 < discardsNeeded) {
+    showError('Not enough cards in hand to pay discard cost');
+    return;
+  }
   showSystemPickerModal('Hot-Wire to which system?', (system) => {
-    const discardsNeeded = card.hot_wire_cost.cards_to_discard;
     if (discardsNeeded > 0) {
       startCardSelectionMode(discardsNeeded, cardIndex, (selectedIndices) => {
         sendAction({ ChooseAction: { action: { HotWireCard: { card_index: cardIndex, system: system, indices_to_discard: selectedIndices } } } });
@@ -892,8 +898,7 @@ function showDualSystemPickerModal(title, fromLabel, toLabel, onPick) {
 
 // --- PlayHotWire effect resolution ---
 function startPlayHotWireEffect() {
-  const myHand = getMyState().hand;
-  if (myHand.length === 0) {
+  if (getMyState().hand.length === 0) {
     showError('No cards in hand to hot-wire');
     return;
   }
@@ -901,10 +906,16 @@ function startPlayHotWireEffect() {
   // Enter card selection mode to pick a card to hot-wire
   // Use -1 as excludeIndex so no cards are excluded
   cardSelectionState = { count: 1, excludeIndex: -1, selected: [], promptLabel: 'Select a card to hot-wire', confirmLabel: 'Confirm Hot-Wire', onConfirm: (selectedIndices) => {
+    const currentHand = getMyState().hand;
     const cardIndex = selectedIndices[0];
-    const card = myHand[cardIndex];
+    const card = currentHand[cardIndex];
+    const discardsNeeded = card.hot_wire_cost.cards_to_discard;
+    // Check if there are enough other cards to pay the discard cost
+    if (discardsNeeded > 0 && currentHand.length - 1 < discardsNeeded) {
+      showError('Not enough cards in hand to pay discard cost');
+      return;
+    }
     showSystemPickerModal('Hot-Wire to which system?', (system) => {
-      const discardsNeeded = card.hot_wire_cost.cards_to_discard;
       if (discardsNeeded > 0) {
         startCardSelectionMode(discardsNeeded, cardIndex, (discardIndices) => {
           sendAction({ ResolveEffect: { resolve_effect: { PlayHotWire: { card_index: cardIndex, system: system, indices_to_discard: discardIndices } } } });
