@@ -919,6 +919,9 @@ function renderHand(cards, containerId, isMyHand) {
 
     cardEl.appendChild(img);
 
+    // Enable drag and drop
+    initDrag(cardEl, index);
+
     cardEl.addEventListener('click', (e) => {
       e.stopPropagation();
       // Card selection mode (for discards)
@@ -1286,6 +1289,210 @@ function startOpponentDiscardMode() {
   }};
   renderCardSelection();
 }
+
+// --- Drag and Drop ---
+
+// Compute which systems a card can be hotwired to (mirrors server get_allowed_system_cards logic)
+function getValidSystemsForCard(card, playerState) {
+  // Generic cards (system: null) can go on any system
+  if (!card.system) {
+    return [...SYSTEM_ENUMS];
+  }
+  // Card has a system restriction — check each system to see if it accepts this card's system
+  const valid = [];
+  SYSTEM_KEYS.forEach((key, i) => {
+    const sys = playerState[key];
+    const systemEnum = SYSTEM_ENUMS[i];
+    // A system accepts cards of its own type
+    const allowedCards = [systemEnum];
+    // Plus any UseSystemCards effects from its hot-wires and starting effects
+    sys.hot_wires.forEach(hw => {
+      hw.hot_wire_effects.forEach(effect => {
+        if (typeof effect === 'object' && effect.UseSystemCards) {
+          allowedCards.push(effect.UseSystemCards);
+        }
+      });
+    });
+    if (allowedCards.includes(card.system)) {
+      valid.push(systemEnum);
+    }
+  });
+  return valid;
+}
+
+let dragState = null;
+
+function initDrag(cardEl, cardIndex) {
+  cardEl.draggable = true;
+
+  cardEl.addEventListener('dragstart', (e) => {
+    // Only allow drag on your turn when choosing an action
+    if (!isMyTurn() || gameState.turn_state !== 'ChoosingAction') {
+      e.preventDefault();
+      return;
+    }
+    // Don't drag while in card selection mode
+    if (cardSelectionState) {
+      e.preventDefault();
+      return;
+    }
+
+    closePopup();
+    const myState = getMyState();
+    const card = myState.hand[cardIndex];
+    const validSystems = getValidSystemsForCard(card, myState);
+    dragState = { cardIndex, validSystems };
+
+    // Use the card image as drag ghost
+    const img = cardEl.querySelector('img');
+    if (img) {
+      e.dataTransfer.setDragImage(img, img.offsetWidth / 2, img.offsetHeight / 2);
+    }
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(cardIndex));
+
+    // Add dragging class after a tick so the drag image captures correctly
+    requestAnimationFrame(() => {
+      cardEl.classList.add('card-dragging');
+      // Highlight only valid system drop zones
+      document.querySelectorAll('#player-systems .system-panel').forEach(p => {
+        if (validSystems.includes(p.dataset.system)) {
+          p.classList.add('drop-zone-active');
+        }
+      });
+      document.getElementById('opponent-area').classList.add('drop-zone-active');
+      // Show drop hint labels
+      showDropHints();
+    });
+  });
+
+  cardEl.addEventListener('dragend', () => {
+    cardEl.classList.remove('card-dragging');
+    clearDropZones();
+    hideDropHints();
+    dragState = null;
+  });
+}
+
+function clearDropZones() {
+  document.querySelectorAll('.drop-zone-active').forEach(el => {
+    el.classList.remove('drop-zone-active');
+  });
+  document.querySelectorAll('.drop-zone-hover').forEach(el => {
+    el.classList.remove('drop-zone-hover');
+  });
+}
+
+function showDropHints() {
+  // Play Instant hint over opponent area
+  let playHint = document.getElementById('drop-hint-play');
+  if (!playHint) {
+    playHint = document.createElement('div');
+    playHint.id = 'drop-hint-play';
+    playHint.className = 'drop-hint';
+    playHint.textContent = 'Drop here to Play Instant';
+    document.getElementById('opponent-area').appendChild(playHint);
+  }
+  playHint.classList.add('visible');
+
+  // Hot-Wire hint over player systems
+  let hwHint = document.getElementById('drop-hint-hotwire');
+  if (!hwHint) {
+    hwHint = document.createElement('div');
+    hwHint.id = 'drop-hint-hotwire';
+    hwHint.className = 'drop-hint';
+    hwHint.textContent = 'Drop on a system to Hot-Wire';
+    const systemsRow = document.getElementById('player-systems');
+    systemsRow.parentNode.insertBefore(hwHint, systemsRow);
+  }
+  hwHint.classList.add('visible');
+}
+
+function hideDropHints() {
+  document.querySelectorAll('.drop-hint').forEach(el => el.classList.remove('visible'));
+}
+
+function initDropZones() {
+  // Player system panels — drop to hotwire
+  document.querySelectorAll('#player-systems .system-panel').forEach(panel => {
+    panel.addEventListener('dragover', (e) => {
+      if (!dragState) return;
+      if (!dragState.validSystems.includes(panel.dataset.system)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      panel.classList.add('drop-zone-hover');
+    });
+
+    panel.addEventListener('dragleave', (e) => {
+      // Only remove hover if we're actually leaving the panel (not entering a child)
+      if (!panel.contains(e.relatedTarget)) {
+        panel.classList.remove('drop-zone-hover');
+      }
+    });
+
+    panel.addEventListener('drop', (e) => {
+      e.preventDefault();
+      panel.classList.remove('drop-zone-hover');
+      clearDropZones();
+      hideDropHints();
+      if (!dragState) return;
+
+      const systemEnum = panel.dataset.system;
+      if (!dragState.validSystems.includes(systemEnum)) return;
+      const cardIndex = dragState.cardIndex;
+      dragState = null;
+
+      // Start hot-wire flow: check discard cost, then send action
+      const myHand = getMyState().hand;
+      const card = myHand[cardIndex];
+      const discardsNeeded = card.hot_wire_cost.cards_to_discard;
+
+      if (discardsNeeded > 0 && myHand.length - 1 < discardsNeeded) {
+        showError('Not enough cards in hand to pay discard cost');
+        return;
+      }
+
+      if (discardsNeeded > 0) {
+        startCardSelectionMode(discardsNeeded, cardIndex, (selectedIndices) => {
+          sendAction({ ChooseAction: { action: { HotWireCard: { card_index: cardIndex, system: systemEnum, indices_to_discard: selectedIndices } } } });
+        });
+      } else {
+        sendAction({ ChooseAction: { action: { HotWireCard: { card_index: cardIndex, system: systemEnum, indices_to_discard: [] } } } });
+      }
+    });
+  });
+
+  // Opponent area — drop to play instant
+  const oppArea = document.getElementById('opponent-area');
+  oppArea.addEventListener('dragover', (e) => {
+    if (!dragState) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    oppArea.classList.add('drop-zone-hover');
+  });
+
+  oppArea.addEventListener('dragleave', (e) => {
+    if (!oppArea.contains(e.relatedTarget)) {
+      oppArea.classList.remove('drop-zone-hover');
+    }
+  });
+
+  oppArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    oppArea.classList.remove('drop-zone-hover');
+    clearDropZones();
+    hideDropHints();
+    if (!dragState) return;
+
+    const cardIndex = dragState.cardIndex;
+    dragState = null;
+
+    sendAction({ ChooseAction: { action: { PlayInstantCard: { card_index: cardIndex } } } });
+  });
+}
+
+// Initialize drop zones once on page load
+initDropZones();
 
 // Close popup on click outside
 document.addEventListener('click', () => closePopup());

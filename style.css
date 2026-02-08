@@ -782,6 +782,60 @@ body {
   border-color: #e8622a;
 }
 
+/* Drag and Drop */
+.card-dragging {
+  opacity: 0.35;
+  transform: scale(0.95) !important;
+}
+
+.drop-zone-active {
+  outline: 2px dashed rgba(232, 98, 42, 0.4);
+  outline-offset: -2px;
+  transition: outline-color 0.15s ease, background 0.15s ease;
+}
+
+.drop-zone-hover {
+  outline: 2px solid #e8622a !important;
+  outline-offset: -2px;
+  background: rgba(232, 98, 42, 0.12) !important;
+}
+
+#opponent-area.drop-zone-active {
+  outline-offset: 0;
+  border-radius: 4px;
+}
+
+#opponent-area.drop-zone-hover {
+  outline-offset: 0;
+  border-radius: 4px;
+}
+
+#player-systems .system-panel.drop-zone-hover {
+  border-left-color: #e8622a !important;
+}
+
+/* Drop hint labels (shown during drag) */
+.drop-hint {
+  display: none;
+  text-align: center;
+  color: #e8622a;
+  font-size: var(--font-sm);
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  padding: 4px 0;
+  pointer-events: none;
+  animation: drop-hint-pulse 1.2s ease-in-out infinite;
+}
+
+.drop-hint.visible {
+  display: block;
+}
+
+@keyframes drop-hint-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
 /* Visual feedback — active/inactive areas */
 .inactive-area {
   opacity: 0.6;
