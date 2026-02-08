@@ -500,6 +500,17 @@ const ICONS = {
   effectOpponentMoveEnergy: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="1" y="5" width="6" height="6" rx="1" fill="#f66" opacity="0.7"/><path d="M10 8h4M12 6l2 2-2 2" stroke="#f66" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   effectPlayHotWire: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="3" y="2" width="10" height="12" rx="1.5" fill="none" stroke="#aaa" stroke-width="1.5"/><path d="M8 6v4M6 8l2 2 2-2" stroke="#aaa" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   effectOpponentDiscard: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="3" y="2" width="10" height="12" rx="1.5" fill="none" stroke="#f66" stroke-width="1.5"/><path d="M6 6l4 4M10 6l-4 4" stroke="#f66" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  // System icons (16x16, colored to match card colors)
+  systemFusionReactor: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><circle cx="8" cy="8" r="6" fill="none" stroke="#e8b830" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="#e8b830"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2" stroke="#e8b830" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  systemLifeSupport: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="6" y="2" width="4" height="12" rx="1" fill="#5c2"/><rect x="2" y="6" width="12" height="4" rx="1" fill="#5c2"/></svg>`,
+  systemShieldGenerator: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><path d="M8 1L2 4v4c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z" fill="#4af" opacity="0.8"/></svg>`,
+  systemWeapons: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="1" y="6" width="9" height="5" rx="1" fill="none" stroke="#d44" stroke-width="1.5"/><rect x="10" y="7.5" width="5" height="2" fill="#d44"/><path d="M1 8.5h4" stroke="#d44" stroke-width="1"/><rect x="3" y="3" width="2" height="3" rx="0.5" fill="#d44" opacity="0.7"/></svg>`,
+};
+const SYSTEM_ICONS = {
+  FusionReactor: ICONS.systemFusionReactor,
+  LifeSupport: ICONS.systemLifeSupport,
+  ShieldGenerator: ICONS.systemShieldGenerator,
+  Weapons: ICONS.systemWeapons,
 };
 
 function repeatIcon(icon, count) {
@@ -786,60 +797,174 @@ function showEnergyDistributionDialog() {
   overlay.id = 'energy-modal';
 
   const modal = document.createElement('div');
-  modal.className = 'modal';
+  modal.className = 'modal energy-dist-modal';
 
   const title = document.createElement('h3');
   title.textContent = 'Distribute Energy';
   modal.appendChild(title);
 
-  const inputs = {};
-  // Fusion Reactor's allowed energy = starting StoreMoreEnergy effects + hot-wire StoreMoreEnergy
   const totalAllowed = getAllowedEnergy(myState.fusion_reactor);
 
-  const currentTotal = SYSTEM_KEYS.reduce((sum, key) => sum + myState[key].energy, 0);
+  // Track energy per system
+  const energy = {};
+  const rows = {};
+  let confirmBtn; // declared early so updateRemainingDisplay can reference it
 
-  const totalDisplay = document.createElement('div');
-  totalDisplay.className = 'energy-total';
-  totalDisplay.textContent = `Total: ${currentTotal} / ${totalAllowed}`;
-  modal.appendChild(totalDisplay);
+  // Smart default: spread evenly, prioritize Life Support > Weapons > Shield Generator
+  // Remainder from even split goes to higher-priority systems first
+  const priority = ['LifeSupport', 'Weapons', 'ShieldGenerator'];
+  const eligible = priority.filter(se => {
+    const i = SYSTEM_ENUMS.indexOf(se);
+    return myState[SYSTEM_KEYS[i]].overloads === 0;
+  });
+  const perSystem = eligible.length > 0 ? Math.floor(totalAllowed / eligible.length) : 0;
+  let remainder = eligible.length > 0 ? totalAllowed - perSystem * eligible.length : totalAllowed;
+
+  SYSTEM_ENUMS.forEach((sysEnum) => {
+    if (eligible.includes(sysEnum)) {
+      const maxE = getAllowedEnergy(myState[SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(sysEnum)]]);
+      energy[sysEnum] = Math.min(perSystem, maxE);
+    } else {
+      energy[sysEnum] = 0;
+    }
+  });
+  // Distribute remainder one at a time by priority, respecting per-system caps
+  while (remainder > 0) {
+    let placed = false;
+    for (const se of eligible) {
+      if (remainder <= 0) break;
+      const maxE = getAllowedEnergy(myState[SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(se)]]);
+      if (energy[se] < maxE) {
+        energy[se]++;
+        remainder--;
+        placed = true;
+      }
+    }
+    if (!placed) break;
+  }
+
+  // Remaining display
+  const getRemaining = () => totalAllowed - SYSTEM_ENUMS.reduce((s, se) => s + energy[se], 0);
+
+  const remainingDisplay = document.createElement('div');
+  remainingDisplay.className = 'energy-remaining';
+
+  function updateRemainingDisplay() {
+    const rem = getRemaining();
+    remainingDisplay.classList.remove('complete', 'incomplete', 'over');
+    if (rem === 0) {
+      remainingDisplay.innerHTML = `${ICONS.energy} All energy placed`;
+      remainingDisplay.classList.add('complete');
+    } else if (rem < 0) {
+      remainingDisplay.innerHTML = `${ICONS.energy} <strong>${Math.abs(rem)}</strong> over capacity`;
+      remainingDisplay.classList.add('over');
+    } else {
+      remainingDisplay.innerHTML = `${ICONS.energy} <strong>${rem}</strong> remaining to place`;
+      remainingDisplay.classList.add('incomplete');
+    }
+    confirmBtn.disabled = rem !== 0;
+  }
+
+  modal.appendChild(remainingDisplay);
+
+  function updateRow(sysEnum) {
+    const row = rows[sysEnum];
+    const val = energy[sysEnum];
+    const maxE = getAllowedEnergy(myState[SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(sysEnum)]]);
+    const isOverloaded = myState[SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(sysEnum)]].overloads > 0;
+
+    // Update count
+    row.countEl.textContent = val;
+
+    // Update energy cubes
+    row.cubesEl.innerHTML = '';
+    for (let j = 0; j < maxE; j++) {
+      const cube = document.createElement('span');
+      cube.className = 'energy-cube' + (j < val ? ' filled' : '');
+      row.cubesEl.appendChild(cube);
+    }
+
+    // Update button states
+    row.minusBtn.disabled = isOverloaded || val <= 0;
+    row.plusBtn.disabled = isOverloaded || val >= maxE;
+
+    updateRemainingDisplay();
+  }
 
   SYSTEM_ENUMS.forEach((sysEnum, i) => {
     const key = SYSTEM_KEYS[i];
     const sys = myState[key];
     const isOverloaded = sys.overloads > 0;
+    const maxE = getAllowedEnergy(sys);
 
     const row = document.createElement('div');
-    row.className = 'energy-row';
+    row.className = 'energy-dist-row' + (isOverloaded ? ' overloaded' : '');
 
-    const label = document.createElement('label');
-    label.textContent = SYSTEM_NAMES[sysEnum];
+    const label = document.createElement('div');
+    label.className = 'energy-dist-label';
+    const icon = SYSTEM_ICONS[sysEnum] || '';
+    label.innerHTML = `${icon} ${SYSTEM_NAMES[sysEnum]}`;
+    if (isOverloaded) {
+      label.innerHTML += ' <span class="overload-tag">OVERLOADED</span>';
+    }
     row.appendChild(label);
 
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = '0';
-    input.value = isOverloaded ? '0' : String(sys.energy);
-    input.disabled = isOverloaded;
-    input.addEventListener('input', () => {
-      const sum = SYSTEM_ENUMS.reduce((s, se) => s + (parseInt(inputs[se].value) || 0), 0);
-      totalDisplay.textContent = `Total: ${sum} / ${totalAllowed}`;
-      confirmBtn.disabled = sum !== totalAllowed;
+    const controls = document.createElement('div');
+    controls.className = 'energy-dist-controls';
+
+    const minusBtn = document.createElement('button');
+    minusBtn.className = 'energy-adj-btn';
+    minusBtn.textContent = '\u2212';
+    minusBtn.disabled = isOverloaded || energy[sysEnum] <= 0;
+    minusBtn.addEventListener('click', () => {
+      if (energy[sysEnum] > 0) {
+        energy[sysEnum]--;
+        SYSTEM_ENUMS.forEach(se => updateRow(se));
+      }
     });
 
-    inputs[sysEnum] = input;
-    row.appendChild(input);
+    const countEl = document.createElement('span');
+    countEl.className = 'energy-dist-count';
+    countEl.textContent = energy[sysEnum];
+
+    const plusBtn = document.createElement('button');
+    plusBtn.className = 'energy-adj-btn';
+    plusBtn.textContent = '+';
+    plusBtn.disabled = isOverloaded || energy[sysEnum] >= maxE;
+    plusBtn.addEventListener('click', () => {
+      if (energy[sysEnum] < maxE) {
+        energy[sysEnum]++;
+        SYSTEM_ENUMS.forEach(se => updateRow(se));
+      }
+    });
+
+    controls.appendChild(minusBtn);
+    controls.appendChild(countEl);
+    controls.appendChild(plusBtn);
+    row.appendChild(controls);
+
+    const cubesEl = document.createElement('div');
+    cubesEl.className = 'energy-cubes';
+    for (let j = 0; j < maxE; j++) {
+      const cube = document.createElement('span');
+      cube.className = 'energy-cube' + (j < energy[sysEnum] ? ' filled' : '');
+      cubesEl.appendChild(cube);
+    }
+    row.appendChild(cubesEl);
+
     modal.appendChild(row);
+    rows[sysEnum] = { row, countEl, cubesEl, minusBtn, plusBtn };
   });
 
   const btnRow = document.createElement('div');
   btnRow.className = 'modal-buttons';
 
-  const confirmBtn = document.createElement('button');
+  confirmBtn = document.createElement('button');
   confirmBtn.textContent = 'Confirm';
   confirmBtn.addEventListener('click', () => {
     const distribution = {};
     SYSTEM_ENUMS.forEach(se => {
-      distribution[se] = parseInt(inputs[se].value) || 0;
+      distribution[se] = energy[se];
     });
     sendAction({ ChooseAction: { action: { ActivateSystem: { system: 'FusionReactor', energy_to_use: null, energy_distribution: distribution } } } });
     closeModal();
@@ -856,6 +981,9 @@ function showEnergyDistributionDialog() {
 
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
+
+  // Initial state
+  updateRemainingDisplay();
 }
 
 function closeModal() {

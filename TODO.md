@@ -12,7 +12,6 @@ TODO:
 - make the activate button on the system not change size when a card is hotwired
 - show reduce short circuit button by the short circuit bar and make it clear it subtracts 2, only show as active if you have any short circuits
 - opponent discard cards is clunky, make this smooth
-- make distribute energy page way better and more usable
 - system picker should show symbols
 
 NICE TO HAVE, BUT DON'T DO NOW:
@@ -21,6 +20,7 @@ NICE TO HAVE, BUT DON'T DO NOW:
 
 
 DONE:
+- make distribute energy page way better and more usable
 - make it where I can drag and drop a card to it's system to hotwire it, or drag it to the opponents side to play immediately
 - disable activate buttons on systems if you don't have enough energy or actions to activate
 - add the icons for effects when resolving effects
