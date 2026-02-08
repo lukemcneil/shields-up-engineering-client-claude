@@ -114,6 +114,7 @@ body {
   display: grid;
   grid-template-rows: minmax(0, 2fr) auto minmax(0, 5fr);
   height: 100vh;
+  overflow: hidden;
 }
 
 /* Opponent Area */
@@ -160,6 +161,8 @@ body {
   gap: 4px;
   min-height: 0;
   overflow: visible;
+  z-index: 10;
+  position: relative;
 }
 
 /* Player Stats */
@@ -349,8 +352,14 @@ body {
   color: #6e6;
 }
 
-.activate-btn:hover {
+.activate-btn:hover:not(:disabled) {
   background: #2a5a3a;
+}
+
+.activate-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  color: #888;
 }
 
 .overload-btn {
@@ -390,8 +399,6 @@ body {
   align-items: flex-end;
   justify-content: center;
   overflow: visible;
-  position: relative;
-  z-index: 20;
 }
 
 /* Opponent hand — just a card count indicator */

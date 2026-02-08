@@ -165,6 +165,45 @@ function getAllowedEnergy(systemState) {
   return base + fromHotWires;
 }
 
+// Starting UseMoreEnergy counts per system (matches server starting_effects)
+const STARTING_USE_MORE = {
+  FusionReactor: 0,
+  LifeSupport: 2,
+  ShieldGenerator: 1,
+  Weapons: 2,
+};
+
+// Calculate activation energy cost for a system (mirrors server get_energy_used)
+function getEnergyCost(systemState) {
+  const systemEnum = systemState.system;
+  const base = STARTING_USE_MORE[systemEnum] || 0;
+  let modifier = 0;
+  systemState.hot_wires.forEach(card => {
+    card.hot_wire_effects.forEach(e => {
+      if (e === 'UseMoreEnergy') modifier += 1;
+      if (e === 'UseLessEnergy') modifier -= 1;
+    });
+  });
+  return Math.max(1, base + modifier);
+}
+
+// Get total energy available from this system + any DrawPowerFrom systems
+function getAvailableEnergy(systemState, playerState) {
+  let total = systemState.energy;
+  // Check hot-wired cards for DrawPowerFrom effects
+  systemState.hot_wires.forEach(card => {
+    card.hot_wire_effects.forEach(e => {
+      if (typeof e === 'object' && e.DrawPowerFrom) {
+        const sourceKey = SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(e.DrawPowerFrom)];
+        if (sourceKey) {
+          total += playerState[sourceKey].energy;
+        }
+      }
+    });
+  });
+  return total;
+}
+
 // --- Floating card preview ---
 const cardPreview = document.createElement('img');
 cardPreview.id = 'card-preview';
@@ -680,15 +719,47 @@ function renderSystems(playerState, containerId) {
       if (sys.overloads === 0) {
         const activateBtn = document.createElement('button');
         activateBtn.className = 'system-action-btn activate-btn';
-        activateBtn.textContent = 'Activate';
-        activateBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (systemEnum === 'FusionReactor') {
-            showEnergyDistributionDialog();
+
+        try {
+          // Check if player has enough energy and actions to activate
+          const actionCost = systemEnum === 'FusionReactor' ? 2 : 1;
+          const notEnoughActions = gameState.actions_left < actionCost;
+          const notEnoughEnergy = systemEnum !== 'FusionReactor' &&
+            getAvailableEnergy(sys, playerState) < getEnergyCost(sys);
+
+          if (notEnoughActions) {
+            activateBtn.disabled = true;
+            activateBtn.textContent = `Activate (need ${actionCost} action${actionCost > 1 ? 's' : ''})`;
+            activateBtn.title = `Not enough actions: need ${actionCost}, have ${gameState.actions_left}`;
+          } else if (notEnoughEnergy) {
+            activateBtn.disabled = true;
+            const cost = getEnergyCost(sys);
+            const available = getAvailableEnergy(sys, playerState);
+            activateBtn.textContent = `Activate (need ${cost} energy, have ${available})`;
+            activateBtn.title = `Not enough energy: need ${cost}, have ${available}`;
           } else {
-            sendAction({ ChooseAction: { action: { ActivateSystem: { system: systemEnum, energy_to_use: null, energy_distribution: null } } } });
+            activateBtn.textContent = 'Activate';
+            activateBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (systemEnum === 'FusionReactor') {
+                showEnergyDistributionDialog();
+              } else {
+                sendAction({ ChooseAction: { action: { ActivateSystem: { system: systemEnum, energy_to_use: null, energy_distribution: null } } } });
+              }
+            });
           }
-        });
+        } catch (err) {
+          console.error('Error checking activate for', systemEnum, err);
+          activateBtn.textContent = 'Activate';
+          activateBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (systemEnum === 'FusionReactor') {
+              showEnergyDistributionDialog();
+            } else {
+              sendAction({ ChooseAction: { action: { ActivateSystem: { system: systemEnum, energy_to_use: null, energy_distribution: null } } } });
+            }
+          });
+        }
         panel.appendChild(activateBtn);
       }
 
