@@ -315,6 +315,22 @@ body {
   cursor: default;
 }
 
+/* Floating card preview on hover */
+#card-preview {
+  position: fixed;
+  z-index: 900;
+  pointer-events: none;
+  width: clamp(180px, 20vw, 280px);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  transition: opacity 0.12s ease;
+  opacity: 0;
+}
+
+#card-preview.visible {
+  opacity: 1;
+}
+
 /* System action buttons span both columns */
 .system-action-btn {
   grid-column: 1 / -1;
@@ -426,7 +442,8 @@ body {
 }
 
 .card.my-card:hover {
-  transform: translateY(var(--card-hover-lift));
+  transform: translateY(var(--card-hover-lift)) scale(1.2);
+  transform-origin: bottom center;
   z-index: 10;
 }
 

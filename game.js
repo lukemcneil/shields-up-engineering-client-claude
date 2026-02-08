@@ -161,6 +161,34 @@ function getAllowedEnergy(systemState) {
   return base + fromHotWires;
 }
 
+// --- Floating card preview ---
+const cardPreview = document.createElement('img');
+cardPreview.id = 'card-preview';
+document.body.appendChild(cardPreview);
+
+function showCardPreview(src, e) {
+  cardPreview.src = src;
+  cardPreview.classList.add('visible');
+  positionCardPreview(e);
+}
+
+function positionCardPreview(e) {
+  const pw = cardPreview.offsetWidth || 200;
+  const ph = cardPreview.offsetHeight || 280;
+  let x = e.clientX + 16;
+  let y = e.clientY - ph / 2;
+  // Keep on screen
+  if (x + pw > window.innerWidth) x = e.clientX - pw - 16;
+  if (y < 4) y = 4;
+  if (y + ph > window.innerHeight - 4) y = window.innerHeight - ph - 4;
+  cardPreview.style.left = x + 'px';
+  cardPreview.style.top = y + 'px';
+}
+
+function hideCardPreview() {
+  cardPreview.classList.remove('visible');
+}
+
 // --- Send action to server ---
 function sendAction(userAction) {
   const msg = { player: myPlayer, user_action: userAction };
@@ -576,6 +604,9 @@ function renderSystems(playerState, containerId) {
     img.className = 'system-img';
     img.src = SYSTEM_IMAGES[systemEnum];
     img.alt = SYSTEM_NAMES[systemEnum];
+    img.addEventListener('mouseenter', (e) => showCardPreview(img.src, e));
+    img.addEventListener('mousemove', positionCardPreview);
+    img.addEventListener('mouseleave', hideCardPreview);
     panel.appendChild(img);
 
     // System name (col 2)
@@ -609,6 +640,9 @@ function renderSystems(playerState, containerId) {
         thumb.title = card.name;
         thumb.className = 'hotwire-thumb';
         thumb.draggable = false;
+        thumb.addEventListener('mouseenter', (e) => showCardPreview(thumb.src, e));
+        thumb.addEventListener('mousemove', positionCardPreview);
+        thumb.addEventListener('mouseleave', hideCardPreview);
         hwContainer.appendChild(thumb);
       });
       panel.appendChild(hwContainer);
