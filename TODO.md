@@ -9,8 +9,8 @@ Note: the server and client are running already and the client hot reloads
 client at 3000, and server at 8000
 
 TODO:
-- disable activate buttons on systems if you don't have enough energy to activate. Remember to consider lower energy costs and being able to draw energy from another system
-- make the activate button on the system not change size when a card is hotwired, and not when don't have enough actions
+- disable activate buttons on systems if you don't have enough energy to activate. Remember to consider lower energy costs and being able to draw energy from another system, and not when don't have enough actions
+- make the activate button on the system not change size when a card is hotwired
 - make it where I can drag and drop a card to it's system to hotwire it, or drag it to the opponents side to play immediately
 - show reduce short circuit button by the short circuit bar and make it clear it subtracts 2
 - opponent discard cards is clunky, make this smooth
