@@ -13,7 +13,11 @@ const gameNameInput = document.getElementById('game-name');
 // --- Connection ---
 function connect(gameName, player) {
   myPlayer = player;
-  const wsUrl = `ws://${location.hostname || 'localhost'}:8000/game/${gameName}`;
+  const isGitHubPages = location.hostname.includes('github.io');
+  const serverBase = isGitHubPages
+    ? 'wss://shields-up-engineering-server.onrender.com'
+    : `ws://${location.hostname || 'localhost'}:8000`;
+  const wsUrl = `${serverBase}/game/${gameName}`;
 
   lobbyStatus.textContent = 'Connecting...';
   connectBtn.disabled = true;
