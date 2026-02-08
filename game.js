@@ -405,15 +405,156 @@ function render() {
   }
 }
 
+// --- Inline SVG icons ---
+const ICONS = {
+  hull: `<svg width="14" height="14" viewBox="0 0 16 16" style="vertical-align:-2px"><rect x="2" y="2" width="12" height="12" rx="2" fill="none" stroke="#f66" stroke-width="2"/><line x1="4" y1="4" x2="12" y2="12" stroke="#f66" stroke-width="2"/><line x1="12" y1="4" x2="4" y2="12" stroke="#f66" stroke-width="2"/></svg>`,
+  shields: `<svg width="14" height="14" viewBox="0 0 16 16" style="vertical-align:-2px"><path d="M8 1L2 4v4c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z" fill="#6af" opacity="0.8"/></svg>`,
+  shortCircuit: `<svg width="14" height="14" viewBox="0 0 16 16" style="vertical-align:-2px"><path d="M9 1L4 9h4l-1 6 5-8H8l1-6z" fill="#f44" opacity="0.9"/></svg>`,
+  energy: `<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-2px"><rect x="1" y="1" width="10" height="10" rx="2" fill="#fd4" opacity="0.85"/></svg>`,
+  overload: (n) => `<svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:-6px"><circle cx="14" cy="14" r="13" fill="#1a0000" stroke="#f44" stroke-width="2"/><circle cx="14" cy="14" r="9" fill="#300" stroke="#f44" stroke-width="1"/><text x="14" y="14" text-anchor="middle" dominant-baseline="central" fill="#ff4444" font-size="14" font-weight="bold" font-family="inherit">${n}</text></svg>`,
+  hotWire: `<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-2px"><path d="M2 10L5 6 3 6 7 2 6 5 8 5 4 10z" fill="#aaa" opacity="0.8"/></svg>`,
+};
+
+function repeatIcon(icon, count) {
+  return icon.repeat(Math.max(0, count));
+}
+
+function renderShortCircuitScale(count) {
+  const max = 12;
+  const thresholdSlots = [4, 9]; // 0-indexed: 5th and 10th slots
+  const deathSlot = 11; // 12th slot (0-indexed)
+  const leftPad = 32; // space for bolt + number
+  const barW = 160;
+  const w = leftPad + barW;
+  const h = 18;
+  const segW = (barW - 2) / max;
+  let svg = `<svg width="${w}" height="${h + 12}" viewBox="0 0 ${w} ${h + 12}" style="vertical-align:-4px">`;
+  // Defs for stripe patterns
+  svg += `<defs>`;
+  svg += `<pattern id="sc-stripe" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">`;
+  svg += `<rect width="2" height="5" fill="#aa2222"/>`;
+  svg += `</pattern>`;
+  svg += `<pattern id="sc-stripe-death" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">`;
+  svg += `<rect width="2" height="4" fill="#ff2222"/>`;
+  svg += `</pattern>`;
+  svg += `</defs>`;
+  // Bolt icon + count number at left, vertically centered with bar
+  svg += `<path d="M6 ${h/2 - 1}l2-4h1.8l-0.8 2.8h1.8l-2.5 4.5h-1.8l0.8-2.8h-1.3z" fill="#f44" opacity="0.9"/>`;
+  svg += `<text x="17" y="${h/2 + 1}" dominant-baseline="central" fill="#ff6666" font-size="13" font-weight="bold" font-family="inherit">${count}</text>`;
+  // Background track
+  svg += `<rect x="${leftPad + 1}" y="1" width="${barW - 2}" height="${h}" rx="3" fill="#111" stroke="#333" stroke-width="1"/>`;
+  // Segments
+  for (let i = 0; i < max; i++) {
+    const x = leftPad + 1 + i * segW;
+    const filled = i < count;
+    const isThreshold = thresholdSlots.includes(i);
+    const isDeath = i === deathSlot;
+    if (filled) {
+      let fill = '#c33';
+      if (i >= 10) fill = '#f22';
+      else if (i >= 5) fill = '#e44';
+      svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 1}" rx="1" fill="${fill}"/>`;
+      if (isDeath) {
+        svg += `<line x1="${x + 1.5}" y1="2.5" x2="${x + segW - 2}" y2="${h - 2}" stroke="#fff" stroke-width="2"/>`;
+        svg += `<line x1="${x + segW - 2}" y1="2.5" x2="${x + 1.5}" y2="${h - 2}" stroke="#fff" stroke-width="2"/>`;
+      }
+    } else if (isDeath) {
+      // 12th slot empty — red X
+      svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 1}" rx="1" fill="#1a0000" stroke="#f22" stroke-width="1"/>`;
+      svg += `<line x1="${x + 1.5}" y1="2.5" x2="${x + segW - 2}" y2="${h - 2}" stroke="#f44" stroke-width="2"/>`;
+      svg += `<line x1="${x + segW - 2}" y1="2.5" x2="${x + 1.5}" y2="${h - 2}" stroke="#f44" stroke-width="2"/>`;
+    } else if (isThreshold) {
+      // Striped warning slots for 5, 10, 11
+      const pattern = 'sc-stripe';
+      svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 1}" rx="1" fill="#1a1a1a"/>`;
+      svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 1}" rx="1" fill="url(#${pattern})"/>`;
+    } else {
+      svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 1}" rx="1" fill="#1a1a1a"/>`;
+    }
+  }
+  // Threshold labels centered under their boxes (0-indexed: 4=5th, 9=10th, 11=12th)
+  const labels = { 5: 4, 10: 9, 12: 11 };
+  for (const [num, slotIdx] of Object.entries(labels)) {
+    const cx = leftPad + 1 + slotIdx * segW + segW / 2;
+    svg += `<text x="${cx}" y="${h + 10}" text-anchor="middle" fill="#f88" font-size="8" font-family="inherit">${num}</text>`;
+  }
+  svg += `</svg>`;
+  return svg;
+}
+
+function renderHullScale(damage) {
+  const max = 5;
+  const deathSlot = 4; // 0-indexed: 5th slot
+  const leftPad = 32;
+  const barW = max * 13.2 + 2; // match segment width with short circuits
+  const w = leftPad + barW;
+  const h = 18;
+  const segW = (barW - 2) / max;
+  let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="vertical-align:-4px">`;
+  // Hull icon (X in box) + count at left
+  svg += `<rect x="1" y="2" width="12" height="12" rx="2" fill="none" stroke="#f66" stroke-width="1.5"/>`;
+  svg += `<line x1="3" y1="4" x2="11" y2="12" stroke="#f66" stroke-width="1.5"/>`;
+  svg += `<line x1="11" y1="4" x2="3" y2="12" stroke="#f66" stroke-width="1.5"/>`;
+  svg += `<text x="19" y="${h/2 + 1}" dominant-baseline="central" fill="#f66" font-size="13" font-weight="bold" font-family="inherit">${damage}</text>`;
+  // Background track
+  svg += `<rect x="${leftPad + 1}" y="1" width="${barW - 2}" height="${h - 2}" rx="3" fill="#111" stroke="#333" stroke-width="1"/>`;
+  // Segments
+  for (let i = 0; i < max; i++) {
+    const x = leftPad + 1 + i * segW;
+    const filled = i < damage;
+    const isDeath = i === deathSlot;
+    if (filled) {
+      const fill = '#cc3333';
+      svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 3}" rx="1" fill="${fill}"/>`;
+      if (isDeath) {
+        svg += `<line x1="${x + 1.5}" y1="2.5" x2="${x + segW - 2}" y2="${h - 3.5}" stroke="#fff" stroke-width="2"/>`;
+        svg += `<line x1="${x + segW - 2}" y1="2.5" x2="${x + 1.5}" y2="${h - 3.5}" stroke="#fff" stroke-width="2"/>`;
+      }
+    } else if (isDeath) {
+      svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 3}" rx="1" fill="#1a0000" stroke="#f22" stroke-width="1"/>`;
+      svg += `<line x1="${x + 1.5}" y1="2.5" x2="${x + segW - 2}" y2="${h - 3.5}" stroke="#f44" stroke-width="2"/>`;
+      svg += `<line x1="${x + segW - 2}" y1="2.5" x2="${x + 1.5}" y2="${h - 3.5}" stroke="#f44" stroke-width="2"/>`;
+    } else {
+      svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 3}" rx="1" fill="#1a1a1a"/>`;
+    }
+  }
+  svg += `</svg>`;
+  return svg;
+}
+
+function renderShieldScale(count, max) {
+  const leftPad = 32;
+  const barW = max * 13.2 + 2; // match segment width with other scales
+  const w = leftPad + barW;
+  const h = 18;
+  const segW = (barW - 2) / max;
+  let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="vertical-align:-4px">`;
+  // Shield icon + count at left
+  svg += `<path d="M7 2L2 4.5v3.5c0 3 2.2 5.2 5 6 2.8-.8 5-3 5-6V4.5L7 2z" fill="#6af" opacity="0.8"/>`;
+  svg += `<text x="17" y="${h/2 + 1}" dominant-baseline="central" fill="#6af" font-size="13" font-weight="bold" font-family="inherit">${count}</text>`;
+  // Background track
+  svg += `<rect x="${leftPad + 1}" y="1" width="${barW - 2}" height="${h - 2}" rx="3" fill="#111" stroke="#333" stroke-width="1"/>`;
+  // Segments
+  for (let i = 0; i < max; i++) {
+    const x = leftPad + 1 + i * segW;
+    const filled = i < count;
+    const fill = filled ? '#4488ff' : '#1a1a1a';
+    svg += `<rect x="${x + 0.5}" y="1.5" width="${segW - 1}" height="${h - 3}" rx="1" fill="${fill}"/>`;
+  }
+  svg += `</svg>`;
+  return svg;
+}
+
 function renderPlayerStats(playerState, elementId) {
   const el = document.getElementById(elementId);
   const hull = el.querySelector('.hull');
   const shields = el.querySelector('.shields');
   const sc = el.querySelector('.short-circuits');
 
-  hull.textContent = `Hull: ${playerState.hull_damage}/5`;
-  shields.textContent = `Shields: ${playerState.shields}`;
-  sc.textContent = `Short Circuits: ${playerState.short_circuits}`;
+  hull.innerHTML = renderHullScale(playerState.hull_damage);
+  const maxShields = getAllowedEnergy(playerState.shield_generator);
+  shields.innerHTML = renderShieldScale(playerState.shields, maxShields);
+  sc.innerHTML = renderShortCircuitScale(playerState.short_circuits);
 }
 
 function renderSystems(playerState, containerId) {
@@ -446,10 +587,12 @@ function renderSystems(playerState, containerId) {
     // Inline stats (col 2) — "E:3  OL:0  HW:1"
     const statsEl = document.createElement('div');
     statsEl.className = 'system-stats-inline';
+    const overloadHtml = sys.overloads > 0
+      ? `<span class="stat-overloads">${ICONS.overload(sys.overloads)}</span>`
+      : '';
     statsEl.innerHTML =
-      `<span class="stat-energy">E:${sys.energy}</span>` +
-      `<span class="stat-overloads">OL:${sys.overloads}</span>` +
-      `<span class="stat-hotwires">HW:${sys.hot_wires.length}</span>`;
+      `<span class="stat-energy">${repeatIcon(ICONS.energy, sys.energy)} <span class="stat-num">${sys.energy}</span></span>` +
+      overloadHtml;
     panel.appendChild(statsEl);
 
     // Hot-wired card thumbnails (spans both cols)
@@ -471,8 +614,12 @@ function renderSystems(playerState, containerId) {
       panel.appendChild(hwContainer);
     }
 
-    // Dim panel if overloaded
-    panel.style.opacity = sys.overloads > 0 ? '0.5' : '1';
+    // Mark panel as overloaded
+    if (sys.overloads > 0) {
+      panel.classList.add('system-overloaded');
+    } else {
+      panel.classList.remove('system-overloaded');
+    }
 
     // Action buttons (spans both cols)
     if (isPlayerSystems && canAct) {
@@ -594,7 +741,7 @@ function closeModal() {
 function renderGameInfoBar() {
   const bar = document.getElementById('game-info-bar');
 
-  const turnLabel = gameState.players_turn === 'Player1' ? "Player 1's Turn" : "Player 2's Turn";
+  const turnLabel = isMyTurn() ? '⚡ Your Turn' : "Opponent's Turn";
   bar.querySelector('.turn-indicator').textContent = turnLabel;
 
   bar.querySelector('.actions-display').textContent = `Actions: ${gameState.actions_left}/3`;

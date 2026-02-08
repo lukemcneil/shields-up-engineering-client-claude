@@ -267,6 +267,38 @@ body {
   color: #aaa;
 }
 
+/* Numeric label next to icon repeats */
+.stat-num {
+  opacity: 0.6;
+  font-size: 0.85em;
+  margin-left: 1px;
+}
+
+/* Overloaded system panel — visibly disabled */
+.system-panel.system-overloaded {
+  border-left-color: #f44 !important;
+  background: #1a0a0a;
+}
+
+.system-panel.system-overloaded .system-img {
+  opacity: 0.3;
+  filter: grayscale(0.8);
+}
+
+.system-panel.system-overloaded .system-name {
+  opacity: 0.4;
+  text-decoration: line-through;
+  text-decoration-color: #f44;
+}
+
+.system-panel.system-overloaded .stat-energy {
+  opacity: 0.35;
+}
+
+.system-panel.system-overloaded .hotwire-cards {
+  opacity: 0.35;
+}
+
 /* Hotwire cards span both columns */
 .hotwire-cards {
   grid-column: 1 / -1;
