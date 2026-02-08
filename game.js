@@ -441,6 +441,22 @@ const ICONS = {
   energy: `<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-2px"><rect x="1" y="1" width="10" height="10" rx="2" fill="#fd4" opacity="0.85"/></svg>`,
   overload: (n) => `<svg width="28" height="28" viewBox="0 0 28 28" style="vertical-align:-6px"><circle cx="14" cy="14" r="13" fill="#1a0000" stroke="#f44" stroke-width="2"/><circle cx="14" cy="14" r="9" fill="#300" stroke="#f44" stroke-width="1"/><text x="14" y="14" text-anchor="middle" dominant-baseline="central" fill="#ff4444" font-size="14" font-weight="bold" font-family="inherit">${n}</text></svg>`,
   hotWire: `<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-2px"><path d="M2 10L5 6 3 6 7 2 6 5 8 5 4 10z" fill="#aaa" opacity="0.8"/></svg>`,
+  // Effect icons (16x16, used in effect chips)
+  effectAttack: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="1" y="6" width="9" height="5" rx="1" fill="none" stroke="#f66" stroke-width="1.5"/><rect x="10" y="7.5" width="5" height="2" fill="#f66"/><path d="M1 8.5h4" stroke="#f66" stroke-width="1"/><rect x="3" y="3" width="2" height="3" rx="0.5" fill="#f66" opacity="0.7"/></svg>`,
+  effectShield: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><path d="M8 1L2 4v4c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z" fill="#6af" opacity="0.8"/><path d="M6 8l2 2 3-4" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  effectGainShortCircuit: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><path d="M9 1L4 9h4l-1 6 5-8H8l1-6z" fill="#f44" opacity="0.9"/></svg>`,
+  effectLoseShortCircuit: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><path d="M9 1L4 9h4l-1 6 5-8H8l1-6z" fill="#4c4" opacity="0.8"/></svg>`,
+  effectDraw: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="3" y="2" width="10" height="12" rx="1.5" fill="none" stroke="#8cf" stroke-width="1.5"/><path d="M6 8h4M8 6v4" stroke="#8cf" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  effectGainAction: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><circle cx="8" cy="8" r="6" fill="none" stroke="#4c4" stroke-width="1.5"/><path d="M5 8h6M8 5v6" stroke="#4c4" stroke-width="2" stroke-linecap="round"/></svg>`,
+  effectOpponentGainShortCircuit: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><path d="M9 1L4 9h4l-1 6 5-8H8l1-6z" fill="#f44" opacity="0.9"/></svg>`,
+  effectOpponentLoseShield: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><path d="M8 1L2 4v4c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z" fill="#f66" opacity="0.6"/><path d="M5 5l6 6M11 5l-6 6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  effectBypassShield: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><path d="M8 1L2 4v4c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4L8 1z" fill="#6af" opacity="0.3"/><path d="M1 12L15 4" stroke="#f66" stroke-width="2" stroke-linecap="round"/></svg>`,
+  effectDiscardOverload: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><circle cx="8" cy="8" r="6" fill="#300" stroke="#4c4" stroke-width="1.5"/><path d="M5 8h6" stroke="#4c4" stroke-width="2" stroke-linecap="round"/></svg>`,
+  effectOpponentGainOverload: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><circle cx="8" cy="8" r="6" fill="#300" stroke="#f44" stroke-width="1.5"/><path d="M5 8h6M8 5v6" stroke="#f44" stroke-width="2" stroke-linecap="round"/></svg>`,
+  effectMoveEnergy: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="1" y="5" width="6" height="6" rx="1" fill="#fd4" opacity="0.85"/><path d="M10 8h4M12 6l2 2-2 2" stroke="#fd4" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  effectOpponentMoveEnergy: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="1" y="5" width="6" height="6" rx="1" fill="#f66" opacity="0.7"/><path d="M10 8h4M12 6l2 2-2 2" stroke="#f66" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  effectPlayHotWire: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="3" y="2" width="10" height="12" rx="1.5" fill="none" stroke="#aaa" stroke-width="1.5"/><path d="M8 6v4M6 8l2 2 2-2" stroke="#aaa" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  effectOpponentDiscard: `<svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:-3px"><rect x="3" y="2" width="10" height="12" rx="1.5" fill="none" stroke="#f66" stroke-width="1.5"/><path d="M6 6l4 4M10 6l-4 4" stroke="#f66" stroke-width="1.5" stroke-linecap="round"/></svg>`,
 };
 
 function repeatIcon(icon, count) {
@@ -910,6 +926,29 @@ function getEffectDisplayName(effect) {
   return name.replace(/([A-Z])/g, ' $1').trim();
 }
 
+function getEffectIcon(effect) {
+  const name = getEffectName(effect);
+  const iconMap = {
+    Attack: ICONS.effectAttack,
+    Shield: ICONS.effectShield,
+    GainShortCircuit: ICONS.effectGainShortCircuit,
+    LoseShortCircuit: ICONS.effectLoseShortCircuit,
+    Draw: ICONS.effectDraw,
+    GainAction: ICONS.effectGainAction,
+    OpponentGainShortCircuit: ICONS.effectOpponentGainShortCircuit,
+    OpponentLoseShield: ICONS.effectOpponentLoseShield,
+    BypassShield: ICONS.effectBypassShield,
+    DiscardOverload: ICONS.effectDiscardOverload,
+    OpponentGainOverload: ICONS.effectOpponentGainOverload,
+    MoveEnergy: ICONS.effectMoveEnergy,
+    MoveEnergyTo: ICONS.effectMoveEnergy,
+    OpponentMoveEnergy: ICONS.effectOpponentMoveEnergy,
+    PlayHotWire: ICONS.effectPlayHotWire,
+    OpponentDiscard: ICONS.effectOpponentDiscard,
+  };
+  return iconMap[name] || '';
+}
+
 function isEffectMandatory(effect) {
   return MANDATORY_EFFECTS.includes(getEffectName(effect));
 }
@@ -943,7 +982,8 @@ function renderEffectChips() {
   effects.forEach((effect, index) => {
     const chip = document.createElement('button');
     chip.className = 'effect-chip';
-    chip.textContent = getEffectDisplayName(effect);
+    const icon = getEffectIcon(effect);
+    chip.innerHTML = icon ? `${icon} ${getEffectDisplayName(effect)}` : getEffectDisplayName(effect);
 
     if (isEffectMandatory(effect)) {
       chip.classList.add('mandatory');

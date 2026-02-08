@@ -114,7 +114,6 @@ body {
   display: grid;
   grid-template-rows: minmax(0, 2fr) auto minmax(0, 5fr);
   height: 100vh;
-  overflow: hidden;
 }
 
 /* Opponent Area */
@@ -160,7 +159,7 @@ body {
   padding: 4px 10px;
   gap: 4px;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Player Stats */
@@ -391,6 +390,8 @@ body {
   align-items: flex-end;
   justify-content: center;
   overflow: visible;
+  position: relative;
+  z-index: 20;
 }
 
 /* Opponent hand — just a card count indicator */
@@ -712,6 +713,9 @@ body {
   font-family: inherit;
   border-radius: 12px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .effect-chip:hover:not(:disabled) {
