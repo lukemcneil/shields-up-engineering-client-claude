@@ -11,14 +11,8 @@ const lobbyStatus = document.getElementById('lobby-status');
 const gameNameInput = document.getElementById('game-name');
 
 // --- Connection ---
-connectBtn.addEventListener('click', () => {
-  const gameName = gameNameInput.value.trim();
-  if (!gameName) {
-    lobbyStatus.textContent = 'Enter a game name.';
-    return;
-  }
-
-  myPlayer = document.querySelector('input[name="player"]:checked').value;
+function connect(gameName, player) {
+  myPlayer = player;
   const wsUrl = `ws://${location.hostname || 'localhost'}:8000/game/${gameName}`;
 
   lobbyStatus.textContent = 'Connecting...';
@@ -27,6 +21,8 @@ connectBtn.addEventListener('click', () => {
   ws = new WebSocket(wsUrl);
 
   ws.addEventListener('open', () => {
+    // Store game/player in URL hash so refresh reconnects
+    location.hash = `${encodeURIComponent(gameName)}/${player}`;
     lobby.classList.add('hidden');
     gameBoard.classList.remove('hidden');
   });
@@ -67,7 +63,32 @@ connectBtn.addEventListener('click', () => {
     lobbyStatus.textContent = 'Connection error. Is the server running?';
     connectBtn.disabled = false;
   });
+}
+
+connectBtn.addEventListener('click', () => {
+  const gameName = gameNameInput.value.trim();
+  if (!gameName) {
+    lobbyStatus.textContent = 'Enter a game name.';
+    return;
+  }
+  const player = document.querySelector('input[name="player"]:checked').value;
+  connect(gameName, player);
 });
+
+// Auto-connect from URL hash on page load (e.g. #game1/Player1)
+(function autoConnect() {
+  const hash = location.hash.slice(1); // remove leading #
+  if (!hash) return;
+  const slashIdx = hash.lastIndexOf('/');
+  if (slashIdx < 1) return;
+  const gameName = decodeURIComponent(hash.slice(0, slashIdx));
+  const player = hash.slice(slashIdx + 1);
+  if (!gameName || (player !== 'Player1' && player !== 'Player2')) return;
+  // Pre-fill the lobby inputs to match
+  gameNameInput.value = gameName;
+  document.querySelector(`input[name="player"][value="${player}"]`).checked = true;
+  connect(gameName, player);
+})();
 
 // --- Card image lookup ---
 const CARD_IMAGES = {
@@ -115,6 +136,12 @@ const SYSTEM_NAMES = {
   LifeSupport: 'Life Support',
   ShieldGenerator: 'Shield Generator',
   Weapons: 'Weapons System',
+};
+const SYSTEM_IMAGES = {
+  FusionReactor: 'cards/aa_Fusion_Reactor[face,2].png',
+  LifeSupport: 'cards/aa_Life_Support[face,2].png',
+  ShieldGenerator: 'cards/aa_Shield_Generator[face,2].png',
+  Weapons: 'cards/aa_Weapons_System[face,2].png',
 };
 
 // --- System energy helpers ---
@@ -400,19 +427,34 @@ function renderSystems(playerState, containerId) {
     const panel = panels[i];
     const systemEnum = SYSTEM_ENUMS[i];
 
-    const energyEl = panel.querySelector('.system-energy');
-    const overloadEl = panel.querySelector('.system-overloads');
-    const hotwireEl = panel.querySelector('.system-hotwires');
+    // Rebuild panel DOM from scratch
+    panel.innerHTML = '';
 
-    energyEl.textContent = `Energy: ${sys.energy}`;
-    overloadEl.textContent = `Overloads: ${sys.overloads}`;
-    hotwireEl.textContent = `Hot-Wires: ${sys.hot_wires.length}`;
+    // System image (col 1, spans rows)
+    const img = document.createElement('img');
+    img.className = 'system-img';
+    img.src = SYSTEM_IMAGES[systemEnum];
+    img.alt = SYSTEM_NAMES[systemEnum];
+    panel.appendChild(img);
 
-    // Render hot-wired card thumbnails
-    let hwContainer = panel.querySelector('.hotwire-cards');
-    if (hwContainer) hwContainer.remove();
+    // System name (col 2)
+    const nameEl = document.createElement('div');
+    nameEl.className = 'system-name';
+    nameEl.textContent = SYSTEM_NAMES[systemEnum];
+    panel.appendChild(nameEl);
+
+    // Inline stats (col 2) — "E:3  OL:0  HW:1"
+    const statsEl = document.createElement('div');
+    statsEl.className = 'system-stats-inline';
+    statsEl.innerHTML =
+      `<span class="stat-energy">E:${sys.energy}</span>` +
+      `<span class="stat-overloads">OL:${sys.overloads}</span>` +
+      `<span class="stat-hotwires">HW:${sys.hot_wires.length}</span>`;
+    panel.appendChild(statsEl);
+
+    // Hot-wired card thumbnails (spans both cols)
     if (sys.hot_wires.length > 0) {
-      hwContainer = document.createElement('div');
+      const hwContainer = document.createElement('div');
       hwContainer.className = 'hotwire-cards';
       sys.hot_wires.forEach(card => {
         const thumb = document.createElement('img');
@@ -430,17 +472,10 @@ function renderSystems(playerState, containerId) {
     }
 
     // Dim panel if overloaded
-    if (sys.overloads > 0) {
-      panel.style.opacity = '0.5';
-    } else {
-      panel.style.opacity = '1';
-    }
+    panel.style.opacity = sys.overloads > 0 ? '0.5' : '1';
 
-    // Remove old action buttons
-    panel.querySelectorAll('.system-action-btn').forEach(b => b.remove());
-
+    // Action buttons (spans both cols)
     if (isPlayerSystems && canAct) {
-      // Activate button (only if not overloaded)
       if (sys.overloads === 0) {
         const activateBtn = document.createElement('button');
         activateBtn.className = 'system-action-btn activate-btn';
@@ -456,7 +491,6 @@ function renderSystems(playerState, containerId) {
         panel.appendChild(activateBtn);
       }
 
-      // Discard Overload button
       if (sys.overloads > 0) {
         const removeBtn = document.createElement('button');
         removeBtn.className = 'system-action-btn overload-btn';
@@ -581,9 +615,25 @@ function renderHand(cards, containerId, isMyHand) {
   const container = document.getElementById(containerId);
   container.innerHTML = '';
 
+  // Opponent hand: show compact card count indicator instead of individual cards
+  if (!isMyHand) {
+    const indicator = document.createElement('div');
+    indicator.className = 'opponent-hand-indicator';
+    const backImg = document.createElement('img');
+    backImg.src = 'cards/attack_01[back,4].png';
+    backImg.alt = 'card back';
+    backImg.draggable = false;
+    indicator.appendChild(backImg);
+    const countSpan = document.createElement('span');
+    countSpan.textContent = `Hand: ${cards.length} card${cards.length !== 1 ? 's' : ''}`;
+    indicator.appendChild(countSpan);
+    container.appendChild(indicator);
+    return;
+  }
+
   cards.forEach((card, index) => {
     const cardEl = document.createElement('div');
-    cardEl.className = 'card' + (isMyHand ? ' my-card' : '');
+    cardEl.className = 'card my-card';
     cardEl.dataset.index = index;
     cardEl.title = card.name;
 
@@ -597,27 +647,25 @@ function renderHand(cards, containerId, isMyHand) {
 
     cardEl.appendChild(img);
 
-    if (isMyHand) {
-      cardEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Card selection mode (for discards)
-        if (cardSelectionState) {
-          if (index === cardSelectionState.excludeIndex) return;
-          const sel = cardSelectionState.selected;
-          const idx = sel.indexOf(index);
-          if (idx >= 0) {
-            sel.splice(idx, 1);
-          } else if (sel.length < cardSelectionState.count) {
-            sel.push(index);
-          }
-          renderCardSelection();
-          return;
+    cardEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Card selection mode (for discards)
+      if (cardSelectionState) {
+        if (index === cardSelectionState.excludeIndex) return;
+        const sel = cardSelectionState.selected;
+        const idx = sel.indexOf(index);
+        if (idx >= 0) {
+          sel.splice(idx, 1);
+        } else if (sel.length < cardSelectionState.count) {
+          sel.push(index);
         }
-        if (!isMyTurn()) return;
-        if (gameState.turn_state !== 'ChoosingAction') return;
-        showCardPopup(cardEl, index);
-      });
-    }
+        renderCardSelection();
+        return;
+      }
+      if (!isMyTurn()) return;
+      if (gameState.turn_state !== 'ChoosingAction') return;
+      showCardPopup(cardEl, index);
+    });
 
     container.appendChild(cardEl);
   });

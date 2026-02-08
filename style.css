@@ -4,11 +4,34 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Card sizes */
+  --card-width: clamp(100px, 13vw, 180px);
+  --card-overlap: clamp(-30px, -4vw, -50px);
+  --card-hover-lift: clamp(-10px, -2vh, -18px);
+
+  /* Opponent */
+  --opponent-system-img: clamp(30px, 5vh, 60px);
+
+  /* Player system images */
+  --system-img: clamp(50px, 8vh, 100px);
+
+  /* Hotwire thumbnails */
+  --hotwire-thumb: clamp(35px, 4.5vw, 60px);
+
+  /* Fonts */
+  --font-xs: clamp(0.55rem, 0.8vw, 0.7rem);
+  --font-sm: clamp(0.65rem, 0.9vw, 0.8rem);
+  --font-md: clamp(0.7rem, 1vw, 0.85rem);
+  --font-base: clamp(0.75rem, 1.1vw, 0.9rem);
+}
+
 body {
   background: #0a1628;
   color: #e0e0e0;
   font-family: 'Courier New', Courier, monospace;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .hidden {
@@ -86,33 +109,35 @@ body {
   min-height: 1.2em;
 }
 
-/* Game Board */
+/* Game Board — CSS Grid, single viewport */
 #game-board {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  display: grid;
+  grid-template-rows: minmax(0, 2fr) auto minmax(0, 5fr);
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Opponent Area */
 #opponent-area {
-  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  padding: 8px 16px;
-  gap: 6px;
+  padding: 4px 10px;
+  gap: 3px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Game Info Bar */
 #game-info-bar {
-  flex: 0 0 44px;
   display: flex;
   align-items: center;
   justify-content: space-around;
   background: #162040;
   border-top: 2px solid #334;
   border-bottom: 2px solid #334;
-  padding: 0 16px;
-  font-size: 0.9rem;
+  padding: 2px 10px;
+  font-size: var(--font-sm);
+  flex-shrink: 0;
 }
 
 .turn-indicator {
@@ -130,24 +155,26 @@ body {
 
 /* Player Area */
 #player-area {
-  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  padding: 8px 16px;
-  gap: 8px;
+  padding: 4px 10px;
+  gap: 4px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Player Stats */
 .player-stats {
   display: flex;
-  gap: 24px;
-  padding: 6px 0;
-  font-size: 0.9rem;
+  gap: 16px;
+  padding: 2px 0;
+  font-size: var(--font-sm);
   font-weight: bold;
+  flex-shrink: 0;
 }
 
 #opponent-stats {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   font-weight: normal;
 }
 
@@ -166,21 +193,23 @@ body {
 /* Systems Row */
 .systems-row {
   display: flex;
-  gap: 8px;
-  flex: 0 0 auto;
+  gap: 6px;
+  flex-shrink: 0;
   min-height: 0;
 }
 
+/* System Panel — CSS Grid: image left, info right */
 .system-panel {
   flex: 1;
   background: #111e36;
   border-radius: 6px;
   border-left: 3px solid #555;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 0.75rem;
+  padding: 4px 6px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 1px 6px;
+  font-size: var(--font-xs);
   overflow: hidden;
   min-width: 0;
 }
@@ -203,58 +232,147 @@ body {
 
 .system-name {
   font-weight: bold;
-  font-size: 0.8rem;
-  margin-bottom: 2px;
+  font-size: var(--font-sm);
+  grid-column: 2;
+  align-self: end;
 }
 
 .system-img {
-  width: 160px;
-  height: 160px;
+  width: var(--system-img);
+  height: var(--system-img);
   object-fit: contain;
   border-radius: 4px;
+  grid-column: 1;
+  grid-row: 1 / 3;
   align-self: center;
 }
 
-#opponent-area .system-img {
-  width: 90px;
-  height: 90px;
+.system-stats-inline {
+  grid-column: 2;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-self: start;
 }
 
-#opponent-area .system-panel {
-  padding: 4px 6px;
-  font-size: 0.7rem;
-}
-
-#opponent-area .system-name {
-  font-size: 0.7rem;
-}
-
-.system-energy {
+.system-stats-inline .stat-energy {
   color: #fd4;
 }
 
-.system-overloads {
+.system-stats-inline .stat-overloads {
   color: #f44;
 }
 
-.system-hotwires {
+.system-stats-inline .stat-hotwires {
   color: #aaa;
+}
+
+/* Hotwire cards span both columns */
+.hotwire-cards {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+.hotwire-thumb {
+  width: var(--hotwire-thumb);
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: default;
+}
+
+/* System action buttons span both columns */
+.system-action-btn {
+  grid-column: 1 / -1;
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+  padding: 2px 4px;
+  font-size: var(--font-xs);
+  font-family: inherit;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid #334;
+}
+
+.activate-btn {
+  background: #1a3a2a;
+  color: #6e6;
+}
+
+.activate-btn:hover {
+  background: #2a5a3a;
+}
+
+.overload-btn {
+  background: #3a1a1a;
+  color: #f88;
+}
+
+.overload-btn:hover {
+  background: #5a2a2a;
+}
+
+/* Opponent system panels — smaller */
+#opponent-area .system-panel {
+  padding: 3px 5px;
+  font-size: var(--font-xs);
+}
+
+#opponent-area .system-img {
+  width: var(--opponent-system-img);
+  height: var(--opponent-system-img);
+}
+
+#opponent-area .system-name {
+  font-size: var(--font-xs);
+}
+
+#opponent-area .hotwire-thumb {
+  width: clamp(20px, 3vw, 40px);
 }
 
 /* Hand Row */
 .hand-row {
   display: flex;
-  padding: 8px 0;
-  min-height: 60px;
+  padding: 4px 0;
+  min-height: 0;
+  flex: 1 1 auto;
   align-items: flex-end;
   justify-content: center;
+  overflow: visible;
+}
+
+/* Opponent hand — just a card count indicator */
+#opponent-hand {
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 2px 0;
+}
+
+.opponent-hand-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-sm);
+  color: #aaa;
+}
+
+.opponent-hand-indicator img {
+  height: clamp(18px, 2.5vh, 28px);
+  border-radius: 2px;
+  opacity: 0.7;
 }
 
 /* Cards */
 .card {
   flex: 0 0 auto;
-  width: 200px;
-  margin-right: -60px;
+  width: var(--card-width);
+  margin-right: var(--card-overlap);
   transition: transform 0.15s ease;
   cursor: default;
   position: relative;
@@ -276,33 +394,24 @@ body {
 }
 
 .card.my-card:hover {
-  transform: translateY(-20px);
+  transform: translateY(var(--card-hover-lift));
   z-index: 10;
-}
-
-/* Opponent cards are smaller */
-#opponent-hand .card {
-  width: 120px;
-  margin-right: -35px;
-}
-
-#opponent-hand .card:last-child {
-  margin-right: 0;
 }
 
 /* Action Buttons */
 .action-buttons {
   display: flex;
-  gap: 12px;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 2px 0;
+  flex-shrink: 0;
 }
 
 .action-buttons button {
   background: #1a2a4a;
   color: #e0e0e0;
   border: 1px solid #334;
-  padding: 8px 20px;
-  font-size: 0.85rem;
+  padding: 4px 12px;
+  font-size: var(--font-sm);
   font-family: inherit;
   border-radius: 4px;
   cursor: pointer;
@@ -374,37 +483,6 @@ body {
 
 #error-toast.visible {
   opacity: 1;
-}
-
-/* System Action Buttons */
-.system-action-btn {
-  display: block;
-  width: 100%;
-  margin-top: 4px;
-  padding: 3px 6px;
-  font-size: 0.7rem;
-  font-family: inherit;
-  border-radius: 3px;
-  cursor: pointer;
-  border: 1px solid #334;
-}
-
-.activate-btn {
-  background: #1a3a2a;
-  color: #6e6;
-}
-
-.activate-btn:hover {
-  background: #2a5a3a;
-}
-
-.overload-btn {
-  background: #3a1a1a;
-  color: #f88;
-}
-
-.overload-btn:hover {
-  background: #5a2a2a;
 }
 
 /* Modal Overlay */
@@ -529,20 +607,20 @@ body {
 /* Card Selection Mode */
 .card-select-prompt {
   color: #fd4;
-  font-size: 0.85rem;
-  padding: 4px 0;
+  font-size: var(--font-sm);
+  padding: 2px 0;
 }
 
 #card-select-confirm {
   background: #e8622a;
   color: #fff;
   border: none;
-  padding: 6px 16px;
-  font-size: 0.8rem;
+  padding: 4px 12px;
+  font-size: var(--font-sm);
   font-family: inherit;
   border-radius: 4px;
   cursor: pointer;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 #card-select-confirm:hover {
@@ -564,13 +642,14 @@ body {
 #effect-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
-  padding: 6px 0;
+  padding: 3px 0;
+  flex-shrink: 0;
 }
 
 .effect-chips-label {
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   color: #aaa;
   margin-right: 4px;
 }
@@ -579,8 +658,8 @@ body {
   background: #1a3a5a;
   color: #6ec;
   border: 1px solid #334;
-  padding: 4px 12px;
-  font-size: 0.75rem;
+  padding: 2px 8px;
+  font-size: var(--font-xs);
   font-family: inherit;
   border-radius: 12px;
   cursor: pointer;
@@ -611,12 +690,12 @@ body {
   background: #334;
   color: #e0e0e0;
   border: 1px solid #555;
-  padding: 4px 14px;
-  font-size: 0.75rem;
+  padding: 2px 10px;
+  font-size: var(--font-xs);
   font-family: inherit;
   border-radius: 4px;
   cursor: pointer;
-  margin-left: 8px;
+  margin-left: 6px;
 }
 
 .effect-stop-btn:hover:not(:disabled) {
@@ -641,21 +720,6 @@ body {
   background: #e8622a;
   color: #fff;
   border-color: #e8622a;
-}
-
-/* Hot-wired card thumbnails on system panels */
-.hotwire-cards {
-  display: flex;
-  gap: 4px;
-  margin-top: 4px;
-  flex-wrap: wrap;
-}
-
-.hotwire-thumb {
-  width: 90px;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  cursor: default;
 }
 
 /* Visual feedback — active/inactive areas */
