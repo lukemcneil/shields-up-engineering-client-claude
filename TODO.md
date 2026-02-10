@@ -9,6 +9,9 @@ Note: the server and client are running already and the client hot reloads
 client at 3000, and server at 8000
 
 TODO:
+- check for win condition
+- stack hotwire cards under system
+- fix card which lets you draw energy from other systems
 - make the activate button on the system not change size when a card is hotwired
 - show reduce short circuit button by the short circuit bar and make it clear it subtracts 2, only show as active if you have any short circuits
 - opponent discard cards is clunky, make this smooth
