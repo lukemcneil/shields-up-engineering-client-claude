@@ -9,7 +9,6 @@ Note: the server and client are running already and the client hot reloads
 client at 3000, and server at 8000
 
 TODO:
-- check for win condition
 - fix card which lets you draw energy from other systems
 - show reduce short circuit button by the short circuit bar and make it clear it subtracts 2, only show as active if you have any short circuits
 - system picker should show symbols
@@ -22,6 +21,7 @@ NICE TO HAVE, BUT DON'T DO NOW:
 
 
 DONE:
+- check for win condition (hull >= 5 or short circuits >= 12, full-screen overlay with win/lose)
 - stack hotwire cards under system
 - make distribute energy page way better and more usable
 - make it where I can drag and drop a card to it's system to hotwire it, or drag it to the opponents side to play immediately

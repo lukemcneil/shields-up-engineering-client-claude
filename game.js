@@ -234,6 +234,7 @@ function hideCardPreview() {
 
 // --- Send action to server ---
 function sendAction(userAction) {
+  if (isGameOver()) return;
   const msg = { player: myPlayer, user_action: userAction };
   ws.send(JSON.stringify(msg));
 }
@@ -437,6 +438,34 @@ function isMyTurn() {
 }
 
 // --- Render ---
+function isGameOver() {
+  return gameState && typeof gameState.turn_state === 'object' && gameState.turn_state.GameOver;
+}
+
+function renderGameOver() {
+  const overlay = document.getElementById('game-over-overlay');
+  if (!isGameOver()) {
+    overlay.classList.add('hidden');
+    return;
+  }
+  const winner = gameState.turn_state.GameOver.winner;
+  const iWon = winner === myPlayer;
+  const title = document.getElementById('game-over-title');
+  const reason = document.getElementById('game-over-reason');
+
+  title.textContent = iWon ? 'You Win!' : 'You Lose!';
+  title.className = 'game-over-title ' + (iWon ? 'win' : 'lose');
+
+  const loser = iWon ? getOpponentState() : getMyState();
+  if (loser.hull_damage >= 5) {
+    reason.textContent = (iWon ? 'Opponent' : 'Your') + ' hull was destroyed';
+  } else if (loser.short_circuits >= 12) {
+    reason.textContent = (iWon ? 'Opponent' : 'Your') + ' ship overloaded from short circuits';
+  }
+
+  overlay.classList.remove('hidden');
+}
+
 function render() {
   if (!gameState) return;
 
@@ -474,6 +503,8 @@ function render() {
     opponentArea.classList.add('active-area');
     infoBar.classList.remove('my-turn');
   }
+
+  renderGameOver();
 }
 
 // --- Inline SVG icons ---
@@ -1001,7 +1032,9 @@ function renderGameInfoBar() {
 
   // Turn state
   let stateText = 'Choosing Action';
-  if (typeof gameState.turn_state === 'object' && gameState.turn_state.ResolvingEffects) {
+  if (isGameOver()) {
+    stateText = 'Game Over';
+  } else if (typeof gameState.turn_state === 'object' && gameState.turn_state.ResolvingEffects) {
     const effects = gameState.turn_state.ResolvingEffects.effects;
     stateText = `Resolving Effects (${effects.length})`;
   }
@@ -1624,3 +1657,13 @@ initDropZones();
 
 // Close popup on click outside
 document.addEventListener('click', () => closePopup());
+
+// New Game button — return to lobby
+document.getElementById('new-game-btn').addEventListener('click', () => {
+  if (ws) ws.close();
+  gameState = null;
+  document.getElementById('game-over-overlay').classList.add('hidden');
+  document.getElementById('game-board').classList.add('hidden');
+  document.getElementById('lobby').classList.remove('hidden');
+  location.hash = '';
+});
