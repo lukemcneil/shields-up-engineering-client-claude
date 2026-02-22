@@ -1302,12 +1302,9 @@ function renderHand(cards, containerId, isMyHand) {
 
 // --- Action buttons ---
 function renderActionButtons() {
-  const buttons = document.getElementById('action-buttons');
   const passBtn = document.getElementById('pass-btn');
-
   const canAct = isMyTurn() && gameState.turn_state === 'ChoosingAction';
   passBtn.disabled = !canAct;
-  buttons.style.opacity = canAct ? '1' : '0.4';
 }
 
 // Wire up action buttons (once)

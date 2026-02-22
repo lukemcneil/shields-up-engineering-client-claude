@@ -145,6 +145,27 @@ body {
   font-weight: bold;
 }
 
+#pass-btn {
+  background: #1a2a4a;
+  color: #e0e0e0;
+  border: 1px solid #334;
+  padding: 2px 12px;
+  font-size: var(--font-sm);
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#pass-btn:hover:not(:disabled) {
+  background: #243a5a;
+  border-color: #e8622a;
+}
+
+#pass-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .turn-state {
   color: #6ec;
 }
@@ -487,35 +508,6 @@ body {
   transform: translateY(var(--card-hover-lift)) scale(1.2);
   transform-origin: bottom center;
   z-index: 10;
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  padding: 2px 0;
-  flex-shrink: 0;
-}
-
-.action-buttons button {
-  background: #1a2a4a;
-  color: #e0e0e0;
-  border: 1px solid #334;
-  padding: 4px 12px;
-  font-size: var(--font-sm);
-  font-family: inherit;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.action-buttons button:hover:not(:disabled) {
-  background: #243a5a;
-  border-color: #e8622a;
-}
-
-.action-buttons button:disabled {
-  cursor: default;
-  opacity: 0.5;
 }
 
 /* Card Popup */
