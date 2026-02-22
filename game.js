@@ -699,6 +699,22 @@ function renderPlayerStats(playerState, elementId) {
   const maxShields = getAllowedEnergy(playerState.shield_generator);
   shields.innerHTML = renderShieldScale(playerState.shields, maxShields);
   sc.innerHTML = renderShortCircuitScale(playerState.short_circuits);
+
+  // Add reduce short circuits button next to the player's short circuit bar
+  if (elementId === 'player-stats') {
+    const canAct = isMyTurn() && gameState.turn_state === 'ChoosingAction';
+    const hasSC = playerState.short_circuits > 0;
+    const btn = document.createElement('button');
+    btn.className = 'reduce-sc-inline-btn';
+    btn.textContent = 'Reduce short circuits by 2';
+    btn.title = 'Reduce Short Circuits by 2 (1 action)';
+    btn.disabled = !canAct || !hasSC;
+    btn.addEventListener('click', () => {
+      if (!isMyTurn() || gameState.turn_state !== 'ChoosingAction') return;
+      sendAction({ ChooseAction: { action: 'ReduceShortCircuits' } });
+    });
+    sc.appendChild(btn);
+  }
 }
 
 function renderSystems(playerState, containerId) {
@@ -1288,11 +1304,9 @@ function renderHand(cards, containerId, isMyHand) {
 function renderActionButtons() {
   const buttons = document.getElementById('action-buttons');
   const passBtn = document.getElementById('pass-btn');
-  const reduceSCBtn = document.getElementById('reduce-sc-btn');
 
   const canAct = isMyTurn() && gameState.turn_state === 'ChoosingAction';
   passBtn.disabled = !canAct;
-  reduceSCBtn.disabled = !canAct;
   buttons.style.opacity = canAct ? '1' : '0.4';
 }
 
@@ -1307,10 +1321,6 @@ document.getElementById('pass-btn').addEventListener('click', () => {
   }
 });
 
-document.getElementById('reduce-sc-btn').addEventListener('click', () => {
-  if (!isMyTurn() || gameState.turn_state !== 'ChoosingAction') return;
-  sendAction({ ChooseAction: { action: 'ReduceShortCircuits' } });
-});
 
 // --- Discard selection for pass turn ---
 function startDiscardSelection(count) {

@@ -9,7 +9,6 @@ Note: the server and client are running already and the client hot reloads
 client at 3000, and server at 8000
 
 TODO:
-- show reduce short circuit button by the short circuit bar and make it clear it subtracts 2, only show as active if you have any short circuits
 - system picker should show symbols
 
 NICE TO HAVE, BUT DON'T DO NOW:
@@ -20,6 +19,7 @@ NICE TO HAVE, BUT DON'T DO NOW:
 
 
 DONE:
+- show reduce short circuit button by the short circuit bar (−2 button, disabled when 0 SC)
 - fix card which lets you draw energy from other systems (energy source picker dialog when DrawPowerFrom is hot-wired)
 - check for win condition (hull >= 5 or short circuits >= 12, full-screen overlay with win/lose)
 - stack hotwire cards under system
