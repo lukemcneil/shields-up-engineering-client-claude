@@ -204,6 +204,21 @@ function getAvailableEnergy(systemState, playerState) {
   return total;
 }
 
+// Get DrawPowerFrom source systems for a given system
+function getDrawPowerFromSources(systemState) {
+  const sources = [];
+  systemState.hot_wires.forEach(card => {
+    card.hot_wire_effects.forEach(e => {
+      if (typeof e === 'object' && e.DrawPowerFrom) {
+        if (!sources.includes(e.DrawPowerFrom)) {
+          sources.push(e.DrawPowerFrom);
+        }
+      }
+    });
+  });
+  return sources;
+}
+
 // --- Floating card preview ---
 const cardPreview = document.createElement('img');
 cardPreview.id = 'card-preview';
@@ -762,41 +777,30 @@ function renderSystems(playerState, containerId) {
         const activateBtn = document.createElement('button');
         activateBtn.className = 'system-action-btn activate-btn';
 
-        try {
-          // Check if player has enough energy and actions to activate
-          const actionCost = systemEnum === 'FusionReactor' ? 2 : 1;
-          const notEnoughActions = gameState.actions_left < actionCost;
-          const notEnoughEnergy = systemEnum !== 'FusionReactor' &&
-            getAvailableEnergy(sys, playerState) < getEnergyCost(sys);
+        // Check if player has enough energy and actions to activate
+        const actionCost = systemEnum === 'FusionReactor' ? 2 : 1;
+        const notEnoughActions = gameState.actions_left < actionCost;
+        const notEnoughEnergy = systemEnum !== 'FusionReactor' &&
+          getAvailableEnergy(sys, playerState) < getEnergyCost(sys);
 
-          if (notEnoughActions) {
-            activateBtn.disabled = true;
-            activateBtn.textContent = `Activate (need ${actionCost} action${actionCost > 1 ? 's' : ''})`;
-            activateBtn.title = `Not enough actions: need ${actionCost}, have ${gameState.actions_left}`;
-          } else if (notEnoughEnergy) {
-            activateBtn.disabled = true;
-            const cost = getEnergyCost(sys);
-            const available = getAvailableEnergy(sys, playerState);
-            activateBtn.textContent = `Activate (need ${cost} energy, have ${available})`;
-            activateBtn.title = `Not enough energy: need ${cost}, have ${available}`;
-          } else {
-            activateBtn.textContent = 'Activate';
-            activateBtn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              if (systemEnum === 'FusionReactor') {
-                showEnergyDistributionDialog();
-              } else {
-                sendAction({ ChooseAction: { action: { ActivateSystem: { system: systemEnum, energy_to_use: null, energy_distribution: null } } } });
-              }
-            });
-          }
-        } catch (err) {
-          console.error('Error checking activate for', systemEnum, err);
+        if (notEnoughActions) {
+          activateBtn.disabled = true;
+          activateBtn.textContent = `Activate (need ${actionCost} action${actionCost > 1 ? 's' : ''})`;
+          activateBtn.title = `Not enough actions: need ${actionCost}, have ${gameState.actions_left}`;
+        } else if (notEnoughEnergy) {
+          activateBtn.disabled = true;
+          const cost = getEnergyCost(sys);
+          const available = getAvailableEnergy(sys, playerState);
+          activateBtn.textContent = `Activate (need ${cost} energy, have ${available})`;
+          activateBtn.title = `Not enough energy: need ${cost}, have ${available}`;
+        } else {
           activateBtn.textContent = 'Activate';
           activateBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (systemEnum === 'FusionReactor') {
               showEnergyDistributionDialog();
+            } else if (getDrawPowerFromSources(sys).length > 0) {
+              showEnergySourceDialog(systemEnum);
             } else {
               sendAction({ ChooseAction: { action: { ActivateSystem: { system: systemEnum, energy_to_use: null, energy_distribution: null } } } });
             }
@@ -1014,6 +1018,179 @@ function showEnergyDistributionDialog() {
   document.body.appendChild(overlay);
 
   // Initial state
+  updateRemainingDisplay();
+}
+
+function showEnergySourceDialog(systemEnum) {
+  closeModal();
+  const myState = getMyState();
+  const sysKey = SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(systemEnum)];
+  const sys = myState[sysKey];
+  const totalNeeded = getEnergyCost(sys);
+  const sources = [systemEnum, ...getDrawPowerFromSources(sys)];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'energy-modal';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal energy-dist-modal';
+
+  const title = document.createElement('h3');
+  title.textContent = `Draw Energy for ${SYSTEM_NAMES[systemEnum]}`;
+  modal.appendChild(title);
+
+  const subtitle = document.createElement('div');
+  subtitle.style.cssText = 'font-size:0.8rem;color:#aaa;margin-bottom:8px';
+  subtitle.textContent = `Needs ${totalNeeded} energy — choose where to draw from`;
+  modal.appendChild(subtitle);
+
+  const energy = {};
+  const rows = {};
+  let confirmBtn;
+
+  // Default: draw as much as possible from the primary system, then from sources
+  sources.forEach(se => { energy[se] = 0; });
+  let remaining = totalNeeded;
+  for (const se of sources) {
+    const sourceKey = SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(se)];
+    const available = myState[sourceKey].energy;
+    const take = Math.min(remaining, available);
+    energy[se] = take;
+    remaining -= take;
+    if (remaining <= 0) break;
+  }
+
+  const getUsed = () => sources.reduce((s, se) => s + energy[se], 0);
+
+  const remainingDisplay = document.createElement('div');
+  remainingDisplay.className = 'energy-remaining';
+
+  function updateRemainingDisplay() {
+    const rem = totalNeeded - getUsed();
+    remainingDisplay.classList.remove('complete', 'incomplete', 'over');
+    if (rem === 0) {
+      remainingDisplay.innerHTML = `${ICONS.energy} All energy allocated`;
+      remainingDisplay.classList.add('complete');
+    } else if (rem < 0) {
+      remainingDisplay.innerHTML = `${ICONS.energy} <strong>${Math.abs(rem)}</strong> over`;
+      remainingDisplay.classList.add('over');
+    } else {
+      remainingDisplay.innerHTML = `${ICONS.energy} <strong>${rem}</strong> more needed`;
+      remainingDisplay.classList.add('incomplete');
+    }
+    confirmBtn.disabled = rem !== 0;
+  }
+
+  modal.appendChild(remainingDisplay);
+
+  function updateRow(sysEnum) {
+    const row = rows[sysEnum];
+    const val = energy[sysEnum];
+    const sourceKey = SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(sysEnum)];
+    const maxE = myState[sourceKey].energy;
+
+    row.countEl.textContent = val;
+
+    row.cubesEl.innerHTML = '';
+    for (let j = 0; j < maxE; j++) {
+      const cube = document.createElement('span');
+      cube.className = 'energy-cube' + (j < val ? ' filled' : '');
+      row.cubesEl.appendChild(cube);
+    }
+
+    row.minusBtn.disabled = val <= 0;
+    row.plusBtn.disabled = val >= maxE;
+
+    updateRemainingDisplay();
+  }
+
+  sources.forEach(sysEnum => {
+    const sourceKey = SYSTEM_KEYS[SYSTEM_ENUMS.indexOf(sysEnum)];
+    const available = myState[sourceKey].energy;
+
+    const row = document.createElement('div');
+    row.className = 'energy-dist-row';
+
+    const label = document.createElement('div');
+    label.className = 'energy-dist-label';
+    const icon = SYSTEM_ICONS[sysEnum] || '';
+    label.innerHTML = `${icon} ${SYSTEM_NAMES[sysEnum]}`;
+    row.appendChild(label);
+
+    const controls = document.createElement('div');
+    controls.className = 'energy-dist-controls';
+
+    const minusBtn = document.createElement('button');
+    minusBtn.className = 'energy-adj-btn';
+    minusBtn.textContent = '\u2212';
+    minusBtn.disabled = energy[sysEnum] <= 0;
+    minusBtn.addEventListener('click', () => {
+      if (energy[sysEnum] > 0) {
+        energy[sysEnum]--;
+        sources.forEach(se => updateRow(se));
+      }
+    });
+
+    const countEl = document.createElement('span');
+    countEl.className = 'energy-dist-count';
+    countEl.textContent = energy[sysEnum];
+
+    const plusBtn = document.createElement('button');
+    plusBtn.className = 'energy-adj-btn';
+    plusBtn.textContent = '+';
+    plusBtn.disabled = energy[sysEnum] >= available;
+    plusBtn.addEventListener('click', () => {
+      if (energy[sysEnum] < available) {
+        energy[sysEnum]++;
+        sources.forEach(se => updateRow(se));
+      }
+    });
+
+    controls.appendChild(minusBtn);
+    controls.appendChild(countEl);
+    controls.appendChild(plusBtn);
+    row.appendChild(controls);
+
+    const cubesEl = document.createElement('div');
+    cubesEl.className = 'energy-cubes';
+    for (let j = 0; j < available; j++) {
+      const cube = document.createElement('span');
+      cube.className = 'energy-cube' + (j < energy[sysEnum] ? ' filled' : '');
+      cubesEl.appendChild(cube);
+    }
+    row.appendChild(cubesEl);
+
+    modal.appendChild(row);
+    rows[sysEnum] = { row, countEl, cubesEl, minusBtn, plusBtn };
+  });
+
+  const btnRow = document.createElement('div');
+  btnRow.className = 'modal-buttons';
+
+  confirmBtn = document.createElement('button');
+  confirmBtn.textContent = 'Confirm';
+  confirmBtn.addEventListener('click', () => {
+    const energyToUse = {};
+    sources.forEach(se => {
+      if (energy[se] > 0) energyToUse[se] = energy[se];
+    });
+    sendAction({ ChooseAction: { action: { ActivateSystem: { system: systemEnum, energy_to_use: energyToUse, energy_distribution: null } } } });
+    closeModal();
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.className = 'cancel-btn';
+  cancelBtn.addEventListener('click', closeModal);
+
+  btnRow.appendChild(confirmBtn);
+  btnRow.appendChild(cancelBtn);
+  modal.appendChild(btnRow);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
   updateRemainingDisplay();
 }
 
