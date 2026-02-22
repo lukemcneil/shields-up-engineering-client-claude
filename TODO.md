@@ -10,19 +10,19 @@ client at 3000, and server at 8000
 
 TODO:
 - check for win condition
-- stack hotwire cards under system
 - fix card which lets you draw energy from other systems
-- make the activate button on the system not change size when a card is hotwired
 - show reduce short circuit button by the short circuit bar and make it clear it subtracts 2, only show as active if you have any short circuits
-- opponent discard cards is clunky, make this smooth
 - system picker should show symbols
 
 NICE TO HAVE, BUT DON'T DO NOW:
+- opponent discard cards is clunky, make this smooth
+- make the activate button on the system not change size when a card is hotwired
 - include a live log of everything that has happened in the game as a sidebar that you can open and close on the right side
 - use real icons from game, need to ask uncle patrick
 
 
 DONE:
+- stack hotwire cards under system
 - make distribute energy page way better and more usable
 - make it where I can drag and drop a card to it's system to hotwire it, or drag it to the opponents side to play immediately
 - disable activate buttons on systems if you don't have enough energy or actions to activate
