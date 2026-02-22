@@ -9,7 +9,7 @@ Note: the server and client are running already and the client hot reloads
 client at 3000, and server at 8000
 
 TODO:
-- system picker should show symbols
+(none)
 
 NICE TO HAVE, BUT DON'T DO NOW:
 - opponent discard cards is clunky, make this smooth
@@ -19,6 +19,7 @@ NICE TO HAVE, BUT DON'T DO NOW:
 
 
 DONE:
+- system picker shows system icons/symbols next to names
 - show reduce short circuit button by the short circuit bar (−2 button, disabled when 0 SC)
 - fix card which lets you draw energy from other systems (energy source picker dialog when DrawPowerFrom is hot-wired)
 - check for win condition (hull >= 5 or short circuits >= 12, full-screen overlay with win/lose)

@@ -350,7 +350,7 @@ function showSystemPickerModal(title, onPick) {
 
   SYSTEM_ENUMS.forEach(sysEnum => {
     const btn = document.createElement('button');
-    btn.textContent = SYSTEM_NAMES[sysEnum];
+    btn.innerHTML = `${SYSTEM_ICONS[sysEnum] || ''} ${SYSTEM_NAMES[sysEnum]}`;
     btn.className = 'system-pick-btn';
     btn.addEventListener('click', () => {
       closeModal();
@@ -1540,7 +1540,7 @@ function showDualSystemPickerModal(title, fromLabel, toLabel, onPick) {
 
   SYSTEM_ENUMS.forEach(sysEnum => {
     const btn = document.createElement('button');
-    btn.textContent = SYSTEM_NAMES[sysEnum];
+    btn.innerHTML = `${SYSTEM_ICONS[sysEnum] || ''} ${SYSTEM_NAMES[sysEnum]}`;
     btn.className = 'system-pick-btn';
     btn.addEventListener('click', () => {
       selectedFrom = sysEnum;
@@ -1566,7 +1566,7 @@ function showDualSystemPickerModal(title, fromLabel, toLabel, onPick) {
 
   SYSTEM_ENUMS.forEach(sysEnum => {
     const btn = document.createElement('button');
-    btn.textContent = SYSTEM_NAMES[sysEnum];
+    btn.innerHTML = `${SYSTEM_ICONS[sysEnum] || ''} ${SYSTEM_NAMES[sysEnum]}`;
     btn.className = 'system-pick-btn';
     btn.addEventListener('click', () => {
       closeModal();
